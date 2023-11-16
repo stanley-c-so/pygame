@@ -1,5 +1,9 @@
+# ========== LIBRARIES ========== #
+
 import pygame as pg
 from sys import exit
+
+# import os
 
 # ========== CLASSES ========== #
 
@@ -41,18 +45,27 @@ DEBUG = True
 
 # Screen
 SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 900
+WINDOW_TITLE = 'Template'
 
 # FPS
 FPS = 60
 
 # Colors
-BACKGROUND_COLOR = "Black"
+BACKGROUND_COLOR = 'black'
 
 # Inputs
 
 
 # Fonts
 FONT_SIZE = 100
+
+# Filesystem
+# CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+# Assets
+# some_img = pg.image.load(CURRENT_DIR + '\\' + 'img.png')
+# img_scale = 1
+# IMG_SURF = pg.transform.rotozoom(some_img, 0, img_scale)
 
 
 # ========== TESTING ========== #
@@ -63,12 +76,12 @@ def debug_print(*args):
 
 # ========== GLOBAL METHODS ========== #
 
-def draw_background():
+def DRAW_BACKGROUND():
   SCREEN.fill(BACKGROUND_COLOR)
 
 def INIT():
   debug_print('INITING')
-  draw_background()
+  DRAW_BACKGROUND()
 
 def RESTART():
   debug_print('RESTARTING')
@@ -79,7 +92,7 @@ def QUIT():
   pg.quit()
   exit()
 
-def handle_events():
+def HANDLE_EVENTS():
   for event in pg.event.get():
     match event.type:
       case pg.QUIT:
@@ -87,13 +100,16 @@ def handle_events():
       case pg.KEYDOWN:
         KEYBOARD.handle_keydown(event)
 
-def update_objects():
+def UPDATE():
+
+  # Mouse
   MOUSE.update()
 
 
 # ========== GAME STATE VARIABLES ========== #
 
 pg.init()
+pg.display.set_caption(WINDOW_TITLE)
 
 MOUSE = Mouse()
 
@@ -111,7 +127,7 @@ dt = 0
 
 INIT()
 while True:
-  handle_events()
-  update_objects()
+  HANDLE_EVENTS()
+  UPDATE()
   pg.display.update()
   dt = CLOCK.tick(FPS) / 1000

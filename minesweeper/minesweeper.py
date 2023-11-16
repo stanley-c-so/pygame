@@ -1,10 +1,11 @@
+# ========== LIBRARIES ========== #
 
-# LIBRARIES
 import pygame as pg
 from sys import exit
 import math
 import random
 import os
+
 
 # ========== CLASSES ========== #
 
@@ -303,13 +304,14 @@ DEBUG = True
 # Screen
 SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 900
 # SCREEN_WIDTH, SCREEN_HEIGHT = 675, 900
+WINDOW_TITLE = 'Minesweeper'
 
 # FPS
 FPS = 60
 
 # Colors
-COLOR_BACKGROUND = "black"
-COLOR_GRID = "white"
+COLOR_BACKGROUND = 'black'
+COLOR_GRID = 'white'
 COLOR_GRID_LINE = (127, 127, 127, 255)
 COLOR_CELL_UNEXPLORED = (207, 207, 207)
 COLOR_CELL_EXPLORED = (223, 223, 223)
@@ -328,9 +330,6 @@ COLOR_TEXT_NUMBERS = {
   8: 'dimgray',
 }
 
-# Inputs
-
-
 # Grid
 HEIGHT, WIDTH = 20, 20
 # HEIGHT, WIDTH = 5, 5
@@ -341,6 +340,7 @@ GRID_LINE_THICKNESS = 1
 IMAGE_SCALE = 0.8
 
 MINE_RATIO = 0.15
+MINE_RATIO = 0.20
 MINE_COUNT = math.floor(HEIGHT * WIDTH * MINE_RATIO)
 
 # Fonts
@@ -366,12 +366,12 @@ def debug_print(*args):
 
 # ========== GLOBAL METHODS ========== #
 
-def draw_background():
+def DRAW_BACKGROUND():
   SCREEN.fill(COLOR_BACKGROUND)
 
 def INIT():
   debug_print('INITING')
-  draw_background()
+  DRAW_BACKGROUND()
   GRID.sprite.reset()
 
 def RESTART():
@@ -383,7 +383,7 @@ def QUIT():
   pg.quit()
   exit()
 
-def handle_events():
+def HANDLE_EVENTS():
   for event in pg.event.get():
     match event.type:
       case pg.QUIT:
@@ -391,7 +391,7 @@ def handle_events():
       case pg.KEYDOWN:
         KEYBOARD.handle_keydown(event)
 
-def update_objects():
+def UPDATE():
 
   # Mouse
   MOUSE.update()
@@ -400,9 +400,11 @@ def update_objects():
   GRID.draw(SCREEN)
   GRID.update()
 
+
 # ========== GAME STATE VARIABLES ========== #
 
 pg.init()
+pg.display.set_caption(WINDOW_TITLE)
 
 MOUSE = Mouse()
 
@@ -418,11 +420,12 @@ dt = 0
 GRID = pg.sprite.GroupSingle()
 GRID.add(Grid())
 
+
 # ========== GAME LOOP ========== #
 
 INIT()
 while True:
-  handle_events()
-  update_objects()
+  HANDLE_EVENTS()
+  UPDATE()
   pg.display.update()
   dt = CLOCK.tick(FPS) / 1000
