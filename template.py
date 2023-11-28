@@ -54,13 +54,13 @@ DEBUG = True
 
 # Screen
 SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 900
-WINDOW_TITLE = 'Template'
+SCREEN_WINDOW_TITLE = 'Template'
 
 # FPS
 FPS = 60
 
 # Colors
-BACKGROUND_COLOR = 'black'
+COLOR_BACKGROUND = 'black'
 
 # Inputs
 
@@ -69,12 +69,12 @@ BACKGROUND_COLOR = 'black'
 FONT_SIZE = 100
 
 # Filesystem
-# CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+# FS_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 # Assets
-# some_img = pg.image.load(CURRENT_DIR + '\\' + 'img.png')
+# some_img = pg.image.load(FS_CURRENT_DIR + '\\' + 'img.png')
 # img_scale = 1
-# IMG_SURF = pg.transform.rotozoom(some_img, 0, img_scale)
+# ASSETS_IMG_SURF = pg.transform.rotozoom(some_img, 0, img_scale)
 
 
 # ========== TESTING ========== #
@@ -86,7 +86,7 @@ def debug_print(*args):
 # ========== GLOBAL METHODS ========== #
 
 def DRAW_BACKGROUND():
-  SCREEN.fill(BACKGROUND_COLOR)
+  SCREEN.fill(COLOR_BACKGROUND)
 
 def INIT():
   debug_print('INITING')
@@ -127,7 +127,7 @@ def UPDATE():
 # ========== GAME STATE VARIABLES ========== #
 
 pg.init()
-pg.display.set_caption(WINDOW_TITLE)
+pg.display.set_caption(SCREEN_WINDOW_TITLE)
 
 ALL_EVENT_TYPES_DICT = {}
 
