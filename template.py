@@ -16,7 +16,7 @@ class Mouse():
   def update_mouse_pos(self):
     self.mouse_pos = pg.math.Vector2(pg.mouse.get_pos())
 
-  def handle_click(self):
+  def handle_left_click(self):
     if not pg.mouse.get_pressed()[0]:
       self.pressed = False
       return
@@ -26,16 +26,25 @@ class Mouse():
 
   def update(self):
     self.update_mouse_pos()
-    self.handle_click()
+    self.handle_left_click()
 
 class Keyboard():
 
-  def handle_keydown(self, event):
-    match event.key:
-      case pg.K_ESCAPE:
-        QUIT()
-      case pg.K_r:
-        RESTART()
+  def handle_keydown(self):
+    if pg.KEYDOWN in ALL_EVENT_TYPES_DICT:
+      for event in ALL_EVENT_TYPES_DICT[pg.KEYDOWN]:
+        match event.key:
+          case pg.K_ESCAPE:
+            QUIT()
+          case pg.K_r:
+            RESTART()
+
+  def handle_keypress(self):
+    keys = pg.key.get_pressed()
+
+  def update(self):
+    self.handle_keydown()
+    self.handle_keypress()
 
 
 # ========== CONSTANTS ========== #
@@ -93,23 +102,34 @@ def QUIT():
   exit()
 
 def HANDLE_EVENTS():
+
+  # Update events
+  global ALL_EVENT_TYPES_DICT
+  ALL_EVENT_TYPES_DICT.clear()
   for event in pg.event.get():
-    match event.type:
-      case pg.QUIT:
-        QUIT()
-      case pg.KEYDOWN:
-        KEYBOARD.handle_keydown(event)
+    ALL_EVENT_TYPES_DICT[event.type] = []
+    ALL_EVENT_TYPES_DICT[event.type].append(event)
+
+  # Handle global events
+  if pg.QUIT in ALL_EVENT_TYPES_DICT:
+    QUIT()
+
 
 def UPDATE():
 
   # Mouse
   MOUSE.update()
 
+  # Keyboard
+  KEYBOARD.update()
+
 
 # ========== GAME STATE VARIABLES ========== #
 
 pg.init()
 pg.display.set_caption(WINDOW_TITLE)
+
+ALL_EVENT_TYPES_DICT = {}
 
 MOUSE = Mouse()
 
