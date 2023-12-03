@@ -1,0 +1,111 @@
+MAP LAYERS:
+
+We need at least three layers to represent that multiple things can exist on the same tile simultaneously.
+
+Examples:
+- Pickups can be hidden under dirt blocks.
+- Creatures or dirt blocks can be stacked on top of a clone machine.
+- Creatures are on top of various floor types (floor, gravel, ice, force field)
+
+Principles to follow:
+- Chip should occupy the first (top) layer.
+- Creatures should occupy the second layer (because Chip and creatures should be able to occupy the same space).
+- Walls (including dirt blocks) should occupy the third layer (because pop-up walls can go underneath creatures).
+- Pickups (chips, keys, boots) should occupy the fourth layer (because pickups can be hidden beneath dirt blocks).
+- Floor types (floor, fire, water, ice, force field, gravel, buttons, bear trap, bomb, exit) and the clone machine should occupy the fifth (bottom) layer.
+
+
+SPRITE SHEET
+
+pink is transparent
+R: 255
+G: 192
+B: 255
+
+
+CODES
+
+Floor type:
+
+000 - Floor
+001 - Thin wall (N)
+002 - Thin wall (E)
+003 - Thin wall (S)
+004 - Thin wall (W)
+005 - Thin wall (NE)
+006 - Thin wall (SE)
+007 - Thin wall (SW)
+008 - Thin wall (NW)
+009 - Button (red)
+010 - Button (blue)
+011 - Button (green)
+012 - Button (brown)
+013 - Clue
+014 - Rising wall
+015 - Bear trap
+016 - Teleport
+017 - Clone machine
+018 - Water
+019 - Ice
+020 - Ice corner (NE)
+021 - Ice corner (SE)
+022 - Ice corner (SW)
+023 - Ice corner (NW)
+024 - Dirt
+025 - Gravel
+026 - Force field (N)
+027 - Force field (E)
+028 - Force field (S)
+029 - Force field (W)
+030 - Force field (random)
+031 - Fire
+032 - Bomb
+033 - Thief
+034 - Exit
+
+Pickup type:
+
+100 - Key (blue)
+101 - Key (red)
+102 - Key (green)
+103 - Key (yellow)
+104 - Boot (water)
+105 - Boot (fire)
+106 - Boot (force field)
+107 - Boot (ice)
+108 - Chip
+
+Wall type:
+
+200 - Socket
+201 - Wall
+202 - Green wall (real --> wall)
+203 - Green wall (fake --> floor)
+204 - Invisible wall (turns to wall)
+205 - Invisible wall (stays invisible)
+206 - Dirt block
+207 - Lock (blue)
+208 - Lock (red)
+209 - Lock (green)
+210 - Lock (yellow)
+211 - Toggle (wall)
+212 - Toggle (floor)
+
+Creature type:
+
+300 - Bug
+301 - Paramecium
+302 - Tank
+303 - Ball (pink)
+304 - Ball (blue)
+305 - Glider
+306 - Fireball
+307 - Teeth
+308 - Blob
+
+Player type:
+
+400 - Chip (down)
+401 - Chip (left)
+402 - Chip (up)
+403 - Chip (right)
