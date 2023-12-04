@@ -104,9 +104,6 @@ class Camera(pg.sprite.Sprite):
                         else self.MAX_COL if PLAYER.col > self.MAX_COL \
                         else PLAYER.col
 
-    if self.camera_row != old_row or self.camera_col != old_col:
-      debug_print(f'UPDATING CAMERA ROW FROM {old_row} TO {self.camera_row} AND CAMERA COL FROM {old_col} TO {self.camera_col}')
-
   def draw_all(self):
     
     # Clear surface
@@ -120,10 +117,6 @@ class Camera(pg.sprite.Sprite):
         for entity_type in MAP.MAP[map_row][map_col]:
           if entity_type == None: continue
           self.image.blit(TILE.surfaces[entity_type], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
-
-          if entity_type == '400' and (row != 4 or col != 4):
-            debug_print(f'ROW: {row}, COL: {col} | PLAYER.row {PLAYER.row}, PLAYER.col {PLAYER.col}')
-
 
   def update(self):
     self.update_camera_world_pos()
@@ -169,10 +162,15 @@ class Map():
 
   def send_movement_request(self, request_payload):
     self.movement_request_queue.append(request_payload)
-    debug_print(f'SENDING MOVEMENT REQUEST')
+    # debug_print(f'SENDING MOVEMENT REQUEST')
 
-  def handle_movement_request(self, request_payload):
-    [row, col, id, dir] = request_payload
+  def process_movement_request(self, request_payload):
+    # [row, col, id, dir] = request_payload
+    [ entity, dir ] = request_payload
+    row = entity.row
+    col = entity.col
+    id = entity.id
+
     DELTAS = {
       'U': (-1, 0),
       'D': (+1, 0),
@@ -181,21 +179,34 @@ class Map():
     }
     dy, dx = DELTAS[dir]
     new_row, new_col = row + dy, col + dx
-    if id == '400':
-      if 0 <= new_row and new_row < self.HEIGHT_IN_TILES \
-          and 0 <= new_col and new_col < self.WIDTH_IN_TILES \
-          and not TILE.ids[self.MAP[new_row][new_col][2]].get('impassable'):
-        self.MAP[row][col][4] = None
-        self.MAP[new_row][new_col][4] = '400'
 
-  def process_all_movement_requests(self):
+    # Turn sprite
+    # to-do
+
+    # Out of bounds
+    if new_row < 0 or new_row == self.HEIGHT_IN_TILES or \
+      new_col < 0 or new_col == self.WIDTH_IN_TILES:
+      debug_print('OUT OF BOUNDS')
+      return
+
+    # Destination data
+    old_tile_data = self.MAP[row][col]
+    new_tile_data = self.MAP[new_row][new_col]
+
+    # Player
+    if id in [ '400', '401', '402', '403' ]:
+      if not TILE.ids[new_tile_data[2]].get('impassable'):
+        old_tile_data[4] = None
+        new_tile_data[4] = id
+
+  def handle_all_movement_requests(self):
     while len(self.movement_request_queue):
       request_payload = self.movement_request_queue.popleft()
-      debug_print(f'PROCESSING MOVEMENT REQUEST WITH PAYLOAD: {request_payload}')
-      self.handle_movement_request(request_payload)
+      # debug_print(f'PROCESSING MOVEMENT REQUEST WITH PAYLOAD: {request_payload}')
+      self.process_movement_request(request_payload)
       
   def update(self):
-    self.process_all_movement_requests()
+    self.handle_all_movement_requests()
 
 class Player():
 
@@ -206,6 +217,7 @@ class Player():
   def init(self):
     self.row, self.col = self.update_world_pos()
     self.move_time = None
+    self.id = '400'
 
   def handle_reset_movement_timers(self):
     if self.move_time != None and pg.time.get_ticks() - self.move_time >= (1 / self.MOVE_SPEED):
@@ -216,16 +228,20 @@ class Player():
       for event in ALL_EVENT_TYPES_DICT[pg.KEYDOWN]:
         match event.key:
           case pg.K_w:
-            MAP.send_movement_request([ self.row, self.col, '400', 'U' ])
+            # MAP.send_movement_request([ self.row, self.col, '400', 'U' ])
+            MAP.send_movement_request([ self, 'U' ])
             # debug_print('pressed w')
           case pg.K_a:
-            MAP.send_movement_request([ self.row, self.col, '400', 'L' ])
+            # MAP.send_movement_request([ self.row, self.col, '400', 'L' ])
+            MAP.send_movement_request([ self, 'L' ])
             # debug_print('pressed a')
           case pg.K_s:
-            MAP.send_movement_request([ self.row, self.col, '400', 'D' ])
+            # MAP.send_movement_request([ self.row, self.col, '400', 'D' ])
+            MAP.send_movement_request([ self, 'D' ])
             # debug_print('pressed s')
           case pg.K_d:
-            MAP.send_movement_request([ self.row, self.col, '400', 'R' ])
+            # MAP.send_movement_request([ self.row, self.col, '400', 'R' ])
+            MAP.send_movement_request([ self, 'R' ])
             # debug_print('pressed d')
 
   # def handle_keypress(self):

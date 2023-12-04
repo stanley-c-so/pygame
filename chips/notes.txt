@@ -93,15 +93,31 @@ Wall type:
 
 Creature type:
 
-300 - Bug
-301 - Paramecium
-302 - Tank
-303 - Ball (pink)
-304 - Ball (blue)
-305 - Glider
-306 - Fireball
-307 - Teeth
-308 - Blob
+300 - Bug (down)
+301 - Bug (down)
+302 - Bug (down)
+303 - Bug (down)
+304 - Paramecium (down)
+305 - Paramecium (down)
+306 - Paramecium (down)
+307 - Paramecium (down)
+308 - Tank (down)
+309 - Tank (down)
+310 - Tank (down)
+311 - Tank (down)
+312 - Ball (pink) (down)
+313 - Ball (blue) (down/up)
+314 - Ball (blue) (left/right)
+315 - Glider (down)
+316 - Glider (down)
+317 - Glider (down)
+318 - Glider (down)
+319 - Fireball
+320 - Teeth (down)
+321 - Teeth (down)
+322 - Teeth (down)
+323 - Teeth (down)
+324 - Blob
 
 Player type:
 
