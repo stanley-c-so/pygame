@@ -166,10 +166,20 @@ class Map():
 
   def process_movement_request(self, request_payload):
     [ instance, dir ] = request_payload
+
     row = instance.row
     col = instance.col
     entity = TILE.ids[instance.id]['entity']
+    layer_idx = 4 if entity == TILE.ENTITY_CHIP else 3
 
+    # Prevent player spam
+    if entity == TILE.ENTITY_CHIP:
+      if instance.move_time != None:
+        debug_print('CANNOT MOVE YET')
+        return
+      instance.move_time = pg.time.get_ticks()
+
+    # Calculate destination
     DELTAS = {
       'U': (-1, 0),
       'D': (+1, 0),
@@ -180,9 +190,8 @@ class Map():
     new_row, new_col = row + dy, col + dx
 
     # Turn sprite
-    # to-do
-    # debug_print(f'NEW ID: {TILE.entities[entity][dir]}')
     instance.id = TILE.entities[entity][dir]
+    self.MAP[row][col][layer_idx] = instance.id
 
     # Out of bounds
     if new_row < 0 or new_row == self.HEIGHT_IN_TILES or \
@@ -190,18 +199,13 @@ class Map():
       debug_print('OUT OF BOUNDS')
       return
 
-    # Destination data
-    old_tile_data = self.MAP[row][col]
-    new_tile_data = self.MAP[new_row][new_col]
-
     # Player
-    if entity == 'chip':
-      if not TILE.ids[new_tile_data[2]].get('impassable'):
-        old_tile_data[4] = None
-        new_tile_data[4] = instance.id
+    if entity == TILE.ENTITY_CHIP:
+      if not TILE.ids[self.MAP[new_row][new_col][2]].get('impassable'):
+        self.MAP[row][col][layer_idx] = None
+        self.MAP[new_row][new_col][layer_idx] = instance.id
       else:
         debug_print('hitting a wall')
-        old_tile_data[4] = instance.id
 
   def handle_all_movement_requests(self):
     while len(self.movement_request_queue):
@@ -219,6 +223,8 @@ class Player():
 
   # def __init__(self):
   def init(self):
+    self.MOVE_SPEED = 0.006
+
     self.row, self.col = self.update_world_pos()
     self.move_time = None
     self.id = '400'
@@ -247,8 +253,7 @@ class Player():
     found_player = False
     for row in range(MAP.HEIGHT_IN_TILES):
       for col in range(MAP.WIDTH_IN_TILES):
-        # if TILE.ids.get(MAP.MAP[row][col][4]).get('entity') == TILE.ENTITY_CHIP:
-        if MAP.MAP[row][col][4] in [ '400', '401', '402', '403' ]:
+        if TILE.ids.get(MAP.MAP[row][col][4]).get('entity') == TILE.ENTITY_CHIP:
           self.row, self.col = row, col
           found_player = True
           break
@@ -264,7 +269,7 @@ class Player():
     self.handle_reset_movement_timers()
 
 
-# ========== CONSTANTS ========== #
+# ========== CONSTANTS ========== #d
 
 DEBUG = False
 DEBUG = True
@@ -373,14 +378,14 @@ FONT = pg.font.Font(None, FONT_SIZE)
 CLOCK = pg.time.Clock()
 dt = 0
 
-MAP = Map()
+TILE = Tile()
 
-CAMERA = pg.sprite.GroupSingle()
-CAMERA.add(Camera())
+MAP = Map()
 
 PLAYER = Player()
 
-TILE = Tile()
+CAMERA = pg.sprite.GroupSingle()
+CAMERA.add(Camera())
 
 
 # ========== GAME LOOP ========== #
