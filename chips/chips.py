@@ -114,9 +114,9 @@ class Camera(pg.sprite.Sprite):
       map_row = self.camera_row - math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) + row
       for col in range(self.VIEWPORT_WIDTH_IN_TILES):
         map_col = self.camera_col - math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) + col
-        for entity_type in MAP.MAP[map_row][map_col]:
-          if entity_type == None: continue
-          self.image.blit(TILE.surfaces[entity_type], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
+        for id in MAP.MAP[map_row][map_col]:
+          if id == None: continue
+          self.image.blit(TILE.surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
 
   def update(self):
     self.update_camera_world_pos()
@@ -165,11 +165,10 @@ class Map():
     # debug_print(f'SENDING MOVEMENT REQUEST')
 
   def process_movement_request(self, request_payload):
-    # [row, col, id, dir] = request_payload
-    [ entity, dir ] = request_payload
-    row = entity.row
-    col = entity.col
-    id = entity.id
+    [ instance, dir ] = request_payload
+    row = instance.row
+    col = instance.col
+    entity = TILE.ids[instance.id]['entity']
 
     DELTAS = {
       'U': (-1, 0),
@@ -182,6 +181,8 @@ class Map():
 
     # Turn sprite
     # to-do
+    # debug_print(f'NEW ID: {TILE.entities[entity][dir]}')
+    instance.id = TILE.entities[entity][dir]
 
     # Out of bounds
     if new_row < 0 or new_row == self.HEIGHT_IN_TILES or \
@@ -194,10 +195,13 @@ class Map():
     new_tile_data = self.MAP[new_row][new_col]
 
     # Player
-    if id in [ '400', '401', '402', '403' ]:
+    if entity == 'chip':
       if not TILE.ids[new_tile_data[2]].get('impassable'):
         old_tile_data[4] = None
-        new_tile_data[4] = id
+        new_tile_data[4] = instance.id
+      else:
+        debug_print('hitting a wall')
+        old_tile_data[4] = instance.id
 
   def handle_all_movement_requests(self):
     while len(self.movement_request_queue):
@@ -228,21 +232,13 @@ class Player():
       for event in ALL_EVENT_TYPES_DICT[pg.KEYDOWN]:
         match event.key:
           case pg.K_w:
-            # MAP.send_movement_request([ self.row, self.col, '400', 'U' ])
             MAP.send_movement_request([ self, 'U' ])
-            # debug_print('pressed w')
           case pg.K_a:
-            # MAP.send_movement_request([ self.row, self.col, '400', 'L' ])
             MAP.send_movement_request([ self, 'L' ])
-            # debug_print('pressed a')
           case pg.K_s:
-            # MAP.send_movement_request([ self.row, self.col, '400', 'D' ])
             MAP.send_movement_request([ self, 'D' ])
-            # debug_print('pressed s')
           case pg.K_d:
-            # MAP.send_movement_request([ self.row, self.col, '400', 'R' ])
             MAP.send_movement_request([ self, 'R' ])
-            # debug_print('pressed d')
 
   # def handle_keypress(self):
   #   keys = pg.key.get_pressed()
@@ -251,7 +247,8 @@ class Player():
     found_player = False
     for row in range(MAP.HEIGHT_IN_TILES):
       for col in range(MAP.WIDTH_IN_TILES):
-        if MAP.MAP[row][col][4] == '400':
+        # if TILE.ids.get(MAP.MAP[row][col][4]).get('entity') == TILE.ENTITY_CHIP:
+        if MAP.MAP[row][col][4] in [ '400', '401', '402', '403' ]:
           self.row, self.col = row, col
           found_player = True
           break
