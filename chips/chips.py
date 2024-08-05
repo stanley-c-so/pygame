@@ -7,9 +7,10 @@ import math
 # import os
 import collections
 
+from map_data import MapData
 from tile import Tile
 
-# ========== CLASSES ========== #
+# ========== SINGLETON CLASSES ========== #
 
 class Mouse():
   
@@ -24,8 +25,8 @@ class Mouse():
     if not pg.mouse.get_pressed()[0]:
       self.pressed = False
       return
-    if self.pressed:
-      return
+    # if self.pressed:
+    #   return
     self.pressed = True
 
   def update(self):
@@ -89,18 +90,16 @@ class Camera(pg.sprite.Sprite):
     for i in range(len(self.test_colors)): self.test_sprites[i].fill(self.test_colors[i])
 
     # Init
-    self.camera_row = None
-    self.camera_col = None
+    self.camera_destination_row = None
+    self.camera_destination_col = None
 
 
   def update_camera_world_pos(self):
 
-    old_row, old_col = self.camera_row, self.camera_col
-
-    self.camera_row = self.MIN_ROW if PLAYER.row < self.MIN_ROW \
+    self.camera_destination_row = self.MIN_ROW if PLAYER.row < self.MIN_ROW \
                         else self.MAX_ROW if PLAYER.row > self.MAX_ROW \
                         else PLAYER.row
-    self.camera_col = self.MIN_COL if PLAYER.col < self.MIN_COL \
+    self.camera_destination_col = self.MIN_COL if PLAYER.col < self.MIN_COL \
                         else self.MAX_COL if PLAYER.col > self.MAX_COL \
                         else PLAYER.col
 
@@ -109,14 +108,75 @@ class Camera(pg.sprite.Sprite):
     # Clear surface
     self.image.fill('black')
 
-    # Draw tiles
-    for row in range(self.VIEWPORT_HEIGHT_IN_TILES):
-      map_row = self.camera_row - math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) + row
-      for col in range(self.VIEWPORT_WIDTH_IN_TILES):
-        map_col = self.camera_col - math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) + col
+    offset_sprite_camera_x = (PLAYER.moving_sprite_offset_x_in_px / self.TILE_SIZE_IN_PX) + PLAYER.col - self.camera_destination_col
+    offset_sprite_camera_y = (PLAYER.moving_sprite_offset_y_in_px / self.TILE_SIZE_IN_PX) + PLAYER.row - self.camera_destination_row
+
+    self.MIN_COL < PLAYER.col < self.MAX_COL
+
+    # Draw tiles (need extra buffer for scrolling camera during movement)
+    for row in range(-1, self.VIEWPORT_HEIGHT_IN_TILES + 1):
+      map_row = self.camera_destination_row - math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) + row
+      for col in range(-1, self.VIEWPORT_WIDTH_IN_TILES + 1):
+        map_col = self.camera_destination_col - math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) + col
+        if not (0 <= map_row < MAP.HEIGHT_IN_TILES and 0 <= map_col < MAP.WIDTH_IN_TILES): continue
         for id in MAP.MAP[map_row][map_col]:
           if id == None: continue
-          self.image.blit(TILE.surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
+
+          # ORIGINAL CODE WITHOUT SCROLLING CAMERA
+          # self.image.blit(TILE.surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
+
+          # don't draw the player here when moving
+          # to-do: what if we refactor the map to hold a UUID of some entity instance?
+          if PLAYER.move_time != None and id[0] == '4': continue
+
+          # to-do: in fact, don't draw any moving entity
+
+          # ORIGINAL CODE FOR SCROLLING CAMERA
+          # self.image.blit(
+          #   TILE.surfaces[id],
+          #   (
+          #     (col - offset_sprite_camera_x) * self.TILE_SIZE_IN_PX,
+          #     (row - offset_sprite_camera_y) * self.TILE_SIZE_IN_PX
+          #   )
+          # )
+
+          self.image.blit(
+            TILE.surfaces[id],
+            (
+              (col - (offset_sprite_camera_x if self.MIN_COL < PLAYER.col < self.MAX_COL else 0)) * self.TILE_SIZE_IN_PX,
+              (row - (offset_sprite_camera_y if self.MIN_ROW < PLAYER.row < self.MAX_ROW else 0)) * self.TILE_SIZE_IN_PX
+            )
+          )
+
+    # draw all moving entities' sprites
+
+    if PLAYER.move_time != None:
+      self.image.blit(
+        TILE.surfaces['400'] if PLAYER.dir == 'D' \
+          else TILE.surfaces['401'] if PLAYER.dir == 'L' \
+          else TILE.surfaces['402'] if PLAYER.dir == 'U' \
+          else TILE.surfaces['403'],
+        (
+          # math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) * self.TILE_SIZE_IN_PX,
+          # math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) * self.TILE_SIZE_IN_PX
+          (math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) + (0 if self.MIN_COL <= PLAYER.col <= self.MAX_COL else offset_sprite_camera_x)) * self.TILE_SIZE_IN_PX,
+          (math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) + (0 if self.MIN_ROW <= PLAYER.row <= self.MAX_ROW else offset_sprite_camera_y)) * self.TILE_SIZE_IN_PX
+        )
+      )
+    
+    # # TEST FOR ANIMATION:
+    # # to-do - remove
+    # if PLAYER.move_time != None:
+    #   self.image.blit(
+    #     TILE.surfaces['400'] if PLAYER.dir == 'D' \
+    #       else TILE.surfaces['401'] if PLAYER.dir == 'L' \
+    #       else TILE.surfaces['402'] if PLAYER.dir == 'U' \
+    #       else TILE.surfaces['403'],
+    #     (
+    #       (math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) + offset_sprite_camera_x) * self.TILE_SIZE_IN_PX,
+    #       (math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) + offset_sprite_camera_y) * self.TILE_SIZE_IN_PX
+    #     )
+    #   )
 
   def update(self):
     self.update_camera_world_pos()
@@ -129,27 +189,7 @@ class Map():
 
   # def __init__(self):
   def init(self):
-    self.MAP = [
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, '201', None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, '400'], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, '201', None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-      [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],
-    ]
+    self.MAP = [ [ data.copy() for data in row ] for row in MAP_DATA.MAP ]
     self.movement_request_queue = collections.deque()
 
     # Computed
@@ -178,6 +218,7 @@ class Map():
         debug_print('CANNOT MOVE YET')
         return
       instance.move_time = pg.time.get_ticks()
+      debug_print('STARTING MOVEMENT')
 
     # Calculate destination
     DELTAS = {
@@ -190,6 +231,7 @@ class Map():
     new_row, new_col = row + dy, col + dx
 
     # Turn sprite
+    instance.dir = dir
     instance.id = TILE.entities[entity][dir]
     self.MAP[row][col][layer_idx] = instance.id
 
@@ -197,15 +239,24 @@ class Map():
     if new_row < 0 or new_row == self.HEIGHT_IN_TILES or \
       new_col < 0 or new_col == self.WIDTH_IN_TILES:
       debug_print('OUT OF BOUNDS')
+      instance.move_time = None
       return
 
     # Player
     if entity == TILE.ENTITY_CHIP:
+
+      # Move
       if not TILE.ids[self.MAP[new_row][new_col][2]].get('impassable'):
         self.MAP[row][col][layer_idx] = None
         self.MAP[new_row][new_col][layer_idx] = instance.id
+        # to-do: WTF IS THIS?
+        # instance.moving_sprite_offset_x_in_px = -(CAMERA.sprite.TILE_SIZE_IN_PX * dx)
+        # instance.moving_sprite_offset_y_in_px = -(CAMERA.sprite.TILE_SIZE_IN_PX * dy)
+
+      # Hit wall
       else:
         debug_print('hitting a wall')
+        instance.move_time = None
 
   def handle_all_movement_requests(self):
     while len(self.movement_request_queue):
@@ -223,15 +274,20 @@ class Player():
 
   # def __init__(self):
   def init(self):
-    self.MOVE_SPEED = 0.006
+    self.COOLDOWN = 100
+    # self.COOLDOWN = 500
+    # self.COOLDOWN = 1000
 
-    self.row, self.col = self.update_world_pos()
+    self.row, self.col, self.id, self.dir = self.update_world_pos()
+    self.moving_sprite_offset_x_in_px = 0
+    self.moving_sprite_offset_y_in_px = 0
     self.move_time = None
-    self.id = '400'
+    self.dead = False
 
   def handle_reset_movement_timers(self):
-    if self.move_time != None and pg.time.get_ticks() - self.move_time >= (1 / self.MOVE_SPEED):
+    if self.move_time != None and pg.time.get_ticks() - self.move_time >= self.COOLDOWN:
       self.move_time = None
+      debug_print('STOPPING MOVEMENT')
 
   def handle_keydown(self):
     if pg.KEYDOWN in ALL_EVENT_TYPES_DICT:
@@ -255,10 +311,33 @@ class Player():
       for col in range(MAP.WIDTH_IN_TILES):
         if TILE.ids.get(MAP.MAP[row][col][4]).get('entity') == TILE.ENTITY_CHIP:
           self.row, self.col = row, col
+          self.id = MAP.MAP[row][col][4]
+          self.dir = TILE.ids[self.id]['dir']
           found_player = True
           break
       if found_player: break
-    return self.row, self.col
+    return self.row, self.col, self.id, self.dir
+
+  def handle_moving_sprite_offset(self):
+
+    # reset offset
+    self.moving_sprite_offset_x_in_px = 0
+    self.moving_sprite_offset_y_in_px = 0
+
+    if self.move_time != None:
+
+      abs_movement_across_tile_ratio = (pg.time.get_ticks() - self.move_time) / self.COOLDOWN
+      abs_movement_across_tile_ratio_in_px = abs_movement_across_tile_ratio * CAMERA.sprite.TILE_SIZE_IN_PX
+      # to-do: RECONSIDER THE MATH?
+      match self.dir:
+        case 'D':
+          self.moving_sprite_offset_y_in_px = abs_movement_across_tile_ratio_in_px - CAMERA.sprite.TILE_SIZE_IN_PX
+        case 'L':
+          self.moving_sprite_offset_x_in_px = CAMERA.sprite.TILE_SIZE_IN_PX - abs_movement_across_tile_ratio_in_px
+        case 'U':
+          self.moving_sprite_offset_y_in_px = CAMERA.sprite.TILE_SIZE_IN_PX - abs_movement_across_tile_ratio_in_px
+        case 'R':
+          self.moving_sprite_offset_x_in_px = abs_movement_across_tile_ratio_in_px - CAMERA.sprite.TILE_SIZE_IN_PX
 
   def get_inputs(self):
     self.handle_keydown()
@@ -267,9 +346,10 @@ class Player():
   def update(self):
     self.update_world_pos()
     self.handle_reset_movement_timers()
+    self.handle_moving_sprite_offset()
 
 
-# ========== CONSTANTS ========== #d
+# ========== CONSTANTS ========== #
 
 DEBUG = False
 DEBUG = True
@@ -279,6 +359,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1260, 900
 SCREEN_WINDOW_TITLE = 'Chips'
 
 # FPS
+# FPS = 64
 FPS = 60
 
 # Colors
@@ -380,6 +461,7 @@ dt = 0
 
 TILE = Tile()
 
+MAP_DATA = MapData()
 MAP = Map()
 
 PLAYER = Player()
@@ -395,4 +477,4 @@ while True:
   HANDLE_EVENTS()
   UPDATE()
   pg.display.update()
-  dt = CLOCK.tick(FPS) / 1000
+  dt = CLOCK.tick(FPS)

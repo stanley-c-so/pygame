@@ -6,7 +6,7 @@ from sys import exit
 # import math
 # import os
 
-# ========== CLASSES ========== #
+# ========== SINGLETON CLASSES ========== #
 
 class Mouse():
   
@@ -21,8 +21,8 @@ class Mouse():
     if not pg.mouse.get_pressed()[0]:
       self.pressed = False
       return
-    if self.pressed:
-      return
+    # if self.pressed:
+    #   return
     self.pressed = True
 
   def update(self):

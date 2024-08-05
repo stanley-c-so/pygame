@@ -10,11 +10,16 @@ class Tile():
     self.ids = {
       None: {},
       '000': { 'filename': 'floor' },
+      '018': { 'filename': 'water' },
       '201': { 'filename': 'wall', 'impassable': True },
-      '400': { 'filename': 'chip_D', 'entity': 'chip' },
-      '401': { 'filename': 'chip_L', 'entity': 'chip' },
-      '402': { 'filename': 'chip_U', 'entity': 'chip' },
-      '403': { 'filename': 'chip_R', 'entity': 'chip' },
+      '312': { 'filename': 'ball_pink', 'entity': 'ball_pink', 'dir': 'D' },
+      '313': { 'filename': 'ball_pink', 'entity': 'ball_pink', 'dir': 'L' },
+      '314': { 'filename': 'ball_pink', 'entity': 'ball_pink', 'dir': 'U' },
+      '315': { 'filename': 'ball_pink', 'entity': 'ball_pink', 'dir': 'R' },
+      '400': { 'filename': 'chip_D', 'entity': 'chip', 'dir': 'D' },
+      '401': { 'filename': 'chip_L', 'entity': 'chip', 'dir': 'L' },
+      '402': { 'filename': 'chip_U', 'entity': 'chip', 'dir': 'U' },
+      '403': { 'filename': 'chip_R', 'entity': 'chip', 'dir': 'R' },
     }
 
     IMAGE_SIDE_LENGTH_IN_PX = 32
