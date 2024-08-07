@@ -92,14 +92,14 @@ class Camera():
           # ORIGINAL CODE WITHOUT SCROLLING CAMERA
           # self.image.blit(SINGLETONS[TILE].surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
 
-          # don't draw the player here when moving
-          # to-do: in fact, don't draw any moving entity
-          # to-do: in fact, don't draw any entities at all that can potentially move
-          # to-do: what if we refactor the map to hold a UUID of some entity instance?
-          if SINGLETONS[PLAYER].move_time != None and id[0] == '4': continue
+          instance = None if type(id) == str else id
+          # don't draw any moving entities
+          if instance and instance.move_time != None: continue
+          # to-do: in fact, don't draw any entities that can potentially move at all
 
           self.image.blit(
-            SINGLETONS[TILE].surfaces[id],
+            SINGLETONS[TILE].surfaces[instance.id if instance else id],
+            # to-do: fix above line if we are not drawing movable entities
             (
               (col + (self.camera_destination_col - self.camera_actual_col)) * self.TILE_SIZE_IN_PX,
               (row + (self.camera_destination_row - self.camera_actual_row)) * self.TILE_SIZE_IN_PX,

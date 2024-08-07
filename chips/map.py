@@ -9,15 +9,22 @@ class Map():
 
   def __init__(self):
   # def init(self):
-    # self.MAP = [ [ data.copy() for data in row ] for row in SINGLETONS[MAP_DATA].MAP ]
     self.MAP = []
-    for row in SINGLETONS[MAP_DATA].MAP:
+    for row in range(len(SINGLETONS[MAP_DATA].MAP)):
+      row_data = SINGLETONS[MAP_DATA].MAP[row]
       map_row = []
-      for col in row:
+      for col in range(len(row_data)):
+        col_data = row_data[col]
         map_col = []
-        for entity in col:
-          # to-do: make this generate an entity class instance where applicable
-          map_col.append(entity)
+        for id in col_data:
+          if id and id[0] == '4':
+            map_col.append(SINGLETONS[PLAYER])
+            SINGLETONS[PLAYER].set_coords(row, col)
+            SINGLETONS[PLAYER].set_id(id)
+            SINGLETONS[PLAYER].set_dir(SINGLETONS[TILE].ids[id]['dir'])
+          # to-do: make this generate an entity class instance for monsters
+          else:
+            map_col.append(id)
         map_row.append(map_col)
       self.MAP.append(map_row)
 
@@ -36,11 +43,11 @@ class Map():
     # debug_print(f'SENDING MOVEMENT REQUEST')
 
   def process_movement_request(self, request_payload):
-    [ instance, dir ] = request_payload
+    ( instance, dir ) = request_payload
 
     row = instance.row
     col = instance.col
-    entity = SINGLETONS[TILE].ids[instance.id]['entity']
+    entity = instance.entity
     layer_idx = 4 if entity == SINGLETONS[TILE].ENTITY_CHIP else 3
 
     # Prevent player spam
@@ -48,7 +55,7 @@ class Map():
       if instance.move_time != None:
         debug_print('CANNOT MOVE YET')
         return
-      instance.move_time = pg.time.get_ticks()
+      instance.set_move_time(pg.time.get_ticks())
       debug_print('STARTING MOVEMENT')
 
     # Calculate destination
@@ -62,29 +69,30 @@ class Map():
     new_row, new_col = row + dy, col + dx
 
     # Turn sprite
-    instance.dir = dir
-    instance.id = SINGLETONS[TILE].entities[entity][dir]
-    self.MAP[row][col][layer_idx] = instance.id
+    instance.set_dir(dir)
+    instance.set_id(SINGLETONS[TILE].entities[entity][dir])
 
     # Out of bounds
     if new_row < 0 or new_row == self.HEIGHT_IN_TILES or \
       new_col < 0 or new_col == self.WIDTH_IN_TILES:
       debug_print('OUT OF BOUNDS')
-      instance.move_time = None
+      instance.set_move_time(None)
       return
 
     # Player
     if entity == SINGLETONS[TILE].ENTITY_CHIP:
 
       # Move
+      # NOTE: for monsters, also check that they're not bumping into a monster
       if not SINGLETONS[TILE].ids[self.MAP[new_row][new_col][2]].get('impassable'):
+        instance.set_coords(new_row, new_col)
         self.MAP[row][col][layer_idx] = None
-        self.MAP[new_row][new_col][layer_idx] = instance.id
+        self.MAP[new_row][new_col][layer_idx] = instance
 
       # Hit wall
       else:
         debug_print('hitting a wall')
-        instance.move_time = None
+        instance.set_move_time(None)
 
   def handle_all_movement_requests(self):
     while len(self.movement_request_queue):

@@ -35,10 +35,11 @@ def INIT():
 
   SINGLETONS[TILE] = Tile()
 
+  # must init before map
+  SINGLETONS[PLAYER] = Player()
+
   SINGLETONS[MAP_DATA] = MapData()
   SINGLETONS[MAP] = Map()
-
-  SINGLETONS[PLAYER] = Player()
 
   SINGLETONS[CAMERA] = Camera()
 
