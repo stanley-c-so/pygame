@@ -4,11 +4,11 @@ import collections
 
 class Map():
 
-  def __init__(self):
-    self.init()
-
   # def __init__(self):
-  def init(self):
+  #   self.init()
+
+  def __init__(self):
+  # def init(self):
     # self.MAP = [ [ data.copy() for data in row ] for row in SINGLETONS[MAP_DATA].MAP ]
     self.MAP = []
     for row in SINGLETONS[MAP_DATA].MAP:
@@ -80,9 +80,6 @@ class Map():
       if not SINGLETONS[TILE].ids[self.MAP[new_row][new_col][2]].get('impassable'):
         self.MAP[row][col][layer_idx] = None
         self.MAP[new_row][new_col][layer_idx] = instance.id
-        # to-do: WTF IS THIS?
-        # instance.moving_sprite_offset_x_in_px = -(CAMERA.sprite.TILE_SIZE_IN_PX * dx)
-        # instance.moving_sprite_offset_y_in_px = -(CAMERA.sprite.TILE_SIZE_IN_PX * dy)
 
       # Hit wall
       else:

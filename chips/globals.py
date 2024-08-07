@@ -16,6 +16,13 @@ L = 'L'
 D = 'D'
 R = 'R'
 
+INPUT_QUIT = 'INPUT_QUIT'
+INPUT_RESTART = 'INPUT_RESTART'
+INPUT_UP = 'INPUT_UP'
+INPUT_LEFT = 'INPUT_LEFT'
+INPUT_DOWN = 'INPUT_DOWN'
+INPUT_RIGHT = 'INPUT_RIGHT'
+
 
 # ========== CONSTANTS ========== #
 
@@ -55,6 +62,8 @@ dt = 0
 ALL_EVENT_TYPES_DICT = {}
 
 SINGLETONS = {}
+
+INPUTS = set()
 
 
 # ========== TESTING ========== #
