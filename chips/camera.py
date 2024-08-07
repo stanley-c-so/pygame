@@ -108,7 +108,18 @@ class Camera():
 
     # draw all moving entities' sprites
 
+    screen_center_col = math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2)
+    screen_center_row = math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2)
     if SINGLETONS[PLAYER].move_time != None:
+
+      player_true_col = SINGLETONS[PLAYER].col - SINGLETONS[PLAYER].moving_sprite_offset_x
+      player_camera_offset_x = self.camera_actual_col - player_true_col
+      player_camera_screen_offset_x = screen_center_col - player_camera_offset_x
+
+      player_true_row = SINGLETONS[PLAYER].row - SINGLETONS[PLAYER].moving_sprite_offset_y
+      player_camera_offset_y = self.camera_actual_row - player_true_row
+      player_camera_screen_offset_y = screen_center_row - player_camera_offset_y
+
       self.image.blit(
         SINGLETONS[TILE].surfaces['400'] if SINGLETONS[PLAYER].dir == D \
           else SINGLETONS[TILE].surfaces['401'] if SINGLETONS[PLAYER].dir == L \
@@ -117,8 +128,8 @@ class Camera():
         (
 
           # to-do - make this general to the entity, not just the player
-          (math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) - (self.camera_actual_col - (SINGLETONS[PLAYER].col - SINGLETONS[PLAYER].moving_sprite_offset_x))) * self.TILE_SIZE_IN_PX,
-          (math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) - (self.camera_actual_row - (SINGLETONS[PLAYER].row - SINGLETONS[PLAYER].moving_sprite_offset_y))) * self.TILE_SIZE_IN_PX
+          player_camera_screen_offset_x * self.TILE_SIZE_IN_PX,
+          player_camera_screen_offset_y * self.TILE_SIZE_IN_PX
         )
       )
 
