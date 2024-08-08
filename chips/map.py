@@ -1,32 +1,64 @@
-from globals import *
-
+import os
 import collections
 
+from globals import *
+
+FILENAME = 'map1'
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+INPUT_PATH = CURRENT_DIR + '\\' + FILENAME + '.txt'
+data = open(INPUT_PATH, 'r').read()
+
+TILE_DELIMITER = '|'
+LAYER_DELIMITER = ','
+NONE = '___'
+
 class Map():
+
+  def parse(self, data):
+    chunks_dict = {}
+    chunks = data.split('\n\n')
+    for chunk in chunks:
+      lines = chunk.split('\n')
+      chunks_dict[lines[0]] = lines[1:]
+
+    res = {
+      MAP: []
+    }
+
+    # PROCESS MAP
+    for row in range(len(chunks_dict[MAP])):
+      row_data = chunks_dict[MAP][row]
+      split = row_data.split(TILE_DELIMITER)
+      map_row = []
+      for col in range(len(split)):
+        col_data = split[col]
+        map_col = []
+        for id in col_data.split(LAYER_DELIMITER):
+          if id[0] == '4':
+            map_col.append(SINGLETONS[PLAYER])
+            SINGLETONS[PLAYER].set_coords(row, col)
+            SINGLETONS[PLAYER].set_id(id)
+            SINGLETONS[PLAYER].set_dir(SINGLETONS[TILE].ids[id]['dir'])
+          # to-do: make this generate an entity class instance for monsters
+          elif id == NONE:
+            map_col.append(None)
+          else:
+            map_col.append(id)
+        map_row.append(map_col)
+      res[MAP].append(map_row)
+
+    # PROCESS BUTTON CONNECTIONS
+
+    return res
 
   # def __init__(self):
   #   self.init()
 
   def __init__(self):
   # def init(self):
-    self.MAP = []
-    for row in range(len(SINGLETONS[MAP_DATA].MAP)):
-      row_data = SINGLETONS[MAP_DATA].MAP[row]
-      map_row = []
-      for col in range(len(row_data)):
-        col_data = row_data[col]
-        map_col = []
-        for id in col_data:
-          if id and id[0] == '4':
-            map_col.append(SINGLETONS[PLAYER])
-            SINGLETONS[PLAYER].set_coords(row, col)
-            SINGLETONS[PLAYER].set_id(id)
-            SINGLETONS[PLAYER].set_dir(SINGLETONS[TILE].ids[id]['dir'])
-          # to-do: make this generate an entity class instance for monsters
-          else:
-            map_col.append(id)
-        map_row.append(map_col)
-      self.MAP.append(map_row)
+
+    parse = self.parse(data)
+    self.MAP = parse[MAP]
 
     self.movement_request_queue = collections.deque()
 
