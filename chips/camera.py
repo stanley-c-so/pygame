@@ -86,19 +86,21 @@ class Camera():
       for col in range(-1, self.VIEWPORT_WIDTH_IN_TILES + 1):
         map_col = self.camera_destination_col - math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2) + col
         if not (0 <= map_row < SINGLETONS[MAP].HEIGHT_IN_TILES and 0 <= map_col < SINGLETONS[MAP].WIDTH_IN_TILES): continue
-        for id in SINGLETONS[MAP].MAP[map_row][map_col]:
-          if id == None: continue
+        for x in SINGLETONS[MAP].MAP[map_row][map_col]:
+          if x == None: continue
 
           # ORIGINAL CODE WITHOUT SCROLLING CAMERA
           # self.image.blit(SINGLETONS[TILE].surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
 
-          instance = None if type(id) == str else id
+          instance = None if type(x) == str else x
+          id = x if type(x) == str else instance.id
+
           # don't draw any moving entities
           if instance and instance.move_time != None: continue
           # to-do: in fact, don't draw any entities that can potentially move at all
 
           self.image.blit(
-            SINGLETONS[TILE].surfaces[instance.id if instance else id],
+            SINGLETONS[TILE].surfaces[id],
             # to-do: fix above line if we are not drawing movable entities
             (
               (col + (self.camera_destination_col - self.camera_actual_col)) * self.TILE_SIZE_IN_PX,

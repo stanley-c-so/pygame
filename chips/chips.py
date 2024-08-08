@@ -66,16 +66,9 @@ def GET_INPUTS():
   SINGLETONS[KEYBOARD].update()
 
 def HANDLE_EVENTS():
-
-  # Update events
-  ALL_EVENT_TYPES_DICT.clear()
   for event in pg.event.get():
-    ALL_EVENT_TYPES_DICT[event.type] = []
-    ALL_EVENT_TYPES_DICT[event.type].append(event)
-
-  # Handle global events
-  if pg.QUIT in ALL_EVENT_TYPES_DICT:
-    QUIT()
+    if event.type == pg.KEYDOWN:
+      SINGLETONS[KEYBOARD].handle_keydown(event.key)
 
 def UPDATE_SINGLETONS():
 

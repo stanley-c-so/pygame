@@ -1,11 +1,40 @@
-# import pygame as pg
-# import os
+import pathlib
+import os
 
-# FS_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+from globals import *
 
+FILENAME = 'map1'
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+INPUT_PATH = CURRENT_DIR + '\\' + FILENAME + '.txt'
+data = open(INPUT_PATH, 'r').read()
+
+print(data)
 class MapData():
   
+  # def parse(self, data):
+  #   chunks_dict = {}
+  #   chunks = data.split('\n\n')
+  #   for chunk in chunks:
+  #     lines = chunk.split('\n')
+  #     chunks_dict[lines[0]] = lines[1:]
+
+  #   res = {
+  #     MAP: []
+  #   }
+
+  #   for row in chunks_dict[MAP]:
+  #     map_row = []
+  #     for tile in row.split('|'):
+  #       for layer_data in tile:
+  #         if layer_data[0] == '4'
+  #         map_row.append()
+
+  #   return res
+
   def __init__(self):
+
+    # parse = self.parse(data)
+    # self.MAP = parse[MAP]
 
     self.MAP = [
       [['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None], ['000', None, None, None, None]],

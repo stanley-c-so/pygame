@@ -8,11 +8,11 @@ Examples:
 - Creatures are on top of various floor types (floor, gravel, ice, force field)
 
 Principles to follow:
-- Chip should occupy the first (top) layer.
-- Creatures should occupy the second layer (because Chip and creatures should be able to occupy the same space).
-- Walls (including dirt blocks) should occupy the third layer (because pop-up walls can go underneath creatures).
-- Pickups (chips, keys, boots) should occupy the fourth layer (because pickups can be hidden beneath dirt blocks).
-- Floor types (floor, fire, water, ice, force field, gravel, buttons, bear trap, bomb, exit) and the clone machine should occupy the fifth (bottom) layer.
+1) Chip should occupy the first (top) layer.
+2) Creatures should occupy the second layer (because Chip and creatures should be able to occupy the same space).
+3) Walls (including dirt blocks) should occupy the third layer (because pop-up walls can go underneath creatures).
+4) Pickups (chips, keys, boots) should occupy the fourth layer (because pickups can be hidden beneath dirt blocks).
+5) Floor types (floor, thin walls, fire, water, ice, force field, gravel, buttons, unpopped wall, bear trap, bomb, teleport, clue, exit) and the clone machine should occupy the fifth (bottom) layer.
 
 
 SPRITE SHEET
@@ -21,6 +21,16 @@ pink is transparent
 R: 255
 G: 192
 B: 255
+
+
+ENTITIES VS. STATIC
+
+- player, monsters, and dirt blocks are entities
+- everything else is static
+- but what about red/brown buttons, and the things they're wired to?
+  - keep a dictionary of these connections
+  - in your map data, make the id at the button have a longer serial to indicate the row/col of the object it's connected to
+
 
 
 CODES
@@ -41,7 +51,7 @@ Floor type:
 011 - Button (green)
 012 - Button (brown)
 013 - Clue
-014 - Rising wall
+014 - Unpopped wall
 015 - Bear trap
 016 - Teleport
 017 - Clone machine
@@ -73,7 +83,7 @@ Pickup type:
 105 - Boot (fire)
 106 - Boot (force field)
 107 - Boot (ice)
-108 - Chip
+108 - Computer chip
 
 Wall type:
 
@@ -83,7 +93,7 @@ Wall type:
 203 - Green wall (fake --> floor)
 204 - Invisible wall (turns to wall)
 205 - Invisible wall (stays invisible)
-206 - Dirt block
+206 - Dirt block [ENTITY]
 207 - Lock (blue)
 208 - Lock (red)
 209 - Lock (green)
@@ -93,46 +103,46 @@ Wall type:
 
 Creature type:
 
-300 - Bug (down)
-301 - Bug (left)
-302 - Bug (up)
-303 - Bug (right)
-304 - Paramecium (down)
-305 - Paramecium (left)
-306 - Paramecium (up)
-307 - Paramecium (right)
-308 - Tank (down)
-309 - Tank (left)
-310 - Tank (up)
-311 - Tank (right)
-312 - Ball (pink) (down)
-313 - Ball (pink) (left)
-314 - Ball (pink) (up)
-315 - Ball (pink) (right)
-316 - Ball (blue) (down)
-317 - Ball (blue) (left)
-318 - Ball (blue) (up)
-319 - Ball (blue) (right)
-320 - Glider (down)
-321 - Glider (left)
-322 - Glider (up)
-323 - Glider (right)
-324 - Fireball (down)
-325 - Fireball (left)
-326 - Fireball (up)
-327 - Fireball (right)
-328 - Teeth (down)
-329 - Teeth (left)
-330 - Teeth (up)
-331 - Teeth (right)
-332 - Blob (down)
-333 - Blob (left)
-334 - Blob (up)
-335 - Blob (right)
+300 - Bug (down) [ENTITY]
+301 - Bug (left) [ENTITY]
+302 - Bug (up) [ENTITY]
+303 - Bug (right) [ENTITY]
+304 - Paramecium (down) [ENTITY]
+305 - Paramecium (left) [ENTITY]
+306 - Paramecium (up) [ENTITY]
+307 - Paramecium (right) [ENTITY]
+308 - Tank (down) [ENTITY]
+309 - Tank (left) [ENTITY]
+310 - Tank (up) [ENTITY]
+311 - Tank (right) [ENTITY]
+312 - Ball (pink) (down) [ENTITY]
+313 - Ball (pink) (left) [ENTITY]
+314 - Ball (pink) (up) [ENTITY]
+315 - Ball (pink) (right) [ENTITY]
+316 - Ball (blue) (down) [ENTITY]
+317 - Ball (blue) (left) [ENTITY]
+318 - Ball (blue) (up) [ENTITY]
+319 - Ball (blue) (right) [ENTITY]
+320 - Glider (down) [ENTITY]
+321 - Glider (left) [ENTITY]
+322 - Glider (up) [ENTITY]
+323 - Glider (right) [ENTITY]
+324 - Fireball (down) [ENTITY]
+325 - Fireball (left) [ENTITY]
+326 - Fireball (up) [ENTITY]
+327 - Fireball (right) [ENTITY]
+328 - Teeth (down) [ENTITY]
+329 - Teeth (left) [ENTITY]
+330 - Teeth (up) [ENTITY]
+331 - Teeth (right) [ENTITY]
+332 - Blob (down) [ENTITY]
+333 - Blob (left) [ENTITY]
+334 - Blob (up) [ENTITY]
+335 - Blob (right) [ENTITY]
 
 Player type:
 
-400 - Chip (down)
-401 - Chip (left)
-402 - Chip (up)
-403 - Chip (right)
+400 - Chip (down) [ENTITY]
+401 - Chip (left) [ENTITY]
+402 - Chip (up) [ENTITY]
+403 - Chip (right) [ENTITY]

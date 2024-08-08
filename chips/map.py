@@ -53,7 +53,7 @@ class Map():
     # Prevent player spam
     if entity == SINGLETONS[TILE].ENTITY_CHIP:
       if instance.move_time != None:
-        debug_print('CANNOT MOVE YET')
+        # debug_print('CANNOT MOVE YET')
         return
       instance.set_move_time(pg.time.get_ticks())
       debug_print('STARTING MOVEMENT')
