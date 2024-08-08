@@ -58,6 +58,8 @@ FONT_SIZE = 100
 
 dt = 0
 
+ALL_EVENT_TYPES_DICT = {}
+
 SINGLETONS = {}
 
 INPUTS = set()

@@ -2,12 +2,14 @@ from globals import *
 
 class Keyboard():
 
-  def handle_keydown(self, key):
-    match key:
-      case pg.K_ESCAPE:
-        INPUTS.add(INPUT_QUIT)
-      case pg.K_r:
-        INPUTS.add(INPUT_RESTART)
+  def handle_keydown(self):
+    if pg.KEYDOWN in ALL_EVENT_TYPES_DICT:
+      for event in ALL_EVENT_TYPES_DICT[pg.KEYDOWN]:
+        match event.key:
+          case pg.K_ESCAPE:
+            INPUTS.add(INPUT_QUIT)
+          case pg.K_r:
+            INPUTS.add(INPUT_RESTART)
 
   def handle_keypress(self):
     keys = pg.key.get_pressed()
@@ -22,4 +24,5 @@ class Keyboard():
       INPUTS.add(INPUT_RIGHT)
 
   def update(self):
+    self.handle_keydown()
     self.handle_keypress()
