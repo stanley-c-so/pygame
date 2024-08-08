@@ -11,7 +11,6 @@ from globals import *
 from mouse import Mouse
 from kb import Keyboard
 
-from map_data import MapData
 from tile import Tile
 
 from map import Map
@@ -38,7 +37,6 @@ def INIT():
   # must init before map
   SINGLETONS[PLAYER] = Player()
 
-  SINGLETONS[MAP_DATA] = MapData()
   SINGLETONS[MAP] = Map()
 
   SINGLETONS[CAMERA] = Camera()
