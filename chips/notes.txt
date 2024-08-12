@@ -13,6 +13,7 @@ Principles to follow:
 3) Walls (including dirt blocks) should occupy the third layer (because pop-up walls can go underneath creatures).
 4) Pickups (chips, keys, boots) should occupy the fourth layer (because pickups can be hidden beneath dirt blocks).
 5) Floor types (floor, thin walls, fire, water, ice, force field, gravel, buttons, unpopped wall, bear trap, bomb, teleport, clue, exit) and the clone machine should occupy the fifth (bottom) layer.
+6) Within the map, layers are stored from bottom to top (I forget why, honestly)
 
 
 SPRITE SHEET

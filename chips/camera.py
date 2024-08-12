@@ -10,8 +10,6 @@ class Camera():
   def __init__(self):
   # def init(self):
 
-    super().__init__()
-
     # Constants
     self.TILE_SIZE_IN_PX = 64
     self.VIEWPORT_WIDTH_IN_TILES = 9
@@ -80,7 +78,11 @@ class Camera():
     # Clear surface
     self.image.fill('black')
 
-    # Draw tiles (need extra buffer for scrolling camera during movement)
+    screen_center_col = math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2)
+    screen_center_row = math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2)
+
+    # Draw static tiles (need extra buffer for scrolling camera during movement)
+
     for row in range(-1, self.VIEWPORT_HEIGHT_IN_TILES + 1):
       map_row = self.camera_destination_row - math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2) + row
       for col in range(-1, self.VIEWPORT_WIDTH_IN_TILES + 1):
@@ -92,12 +94,16 @@ class Camera():
           # ORIGINAL CODE WITHOUT SCROLLING CAMERA
           # self.image.blit(SINGLETONS[TILE].surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
 
-          instance = None if type(x) == str else x
-          id = x if type(x) == str else instance.id
+          # instance = None if type(x) == str else x
+          # id = x if type(x) == str else instance.id
 
-          # don't draw any moving entities
-          if instance and instance.move_time != None: continue
-          # to-do: in fact, don't draw any entities that can potentially move at all
+          # # don't draw any moving entities
+          # # if instance and instance.move_time != None: continue
+          # # to-do: in fact, don't draw any entities that can potentially move at all ???
+          # if instance: continue
+
+          if type(x) != str: continue
+          id = x
 
           self.image.blit(
             SINGLETONS[TILE].surfaces[id],
@@ -108,32 +114,50 @@ class Camera():
             )
           )
 
-    # draw all moving entities' sprites
+    # Draw entities
 
-    screen_center_col = math.floor(self.VIEWPORT_WIDTH_IN_TILES / 2)
-    screen_center_row = math.floor(self.VIEWPORT_HEIGHT_IN_TILES / 2)
-    if SINGLETONS[PLAYER].move_time != None:
+    for entity in SINGLETONS[MAP].all_creatures:
 
-      player_true_col = SINGLETONS[PLAYER].col - SINGLETONS[PLAYER].moving_sprite_offset_x
-      player_camera_offset_x = self.camera_actual_col - player_true_col
-      player_camera_screen_offset_x = screen_center_col - player_camera_offset_x
+      entity_true_col = entity.col - entity.moving_sprite_offset_x
+      entity_camera_offset_x = self.camera_actual_col - entity_true_col
+      entity_camera_screen_offset_x = screen_center_col - entity_camera_offset_x
 
-      player_true_row = SINGLETONS[PLAYER].row - SINGLETONS[PLAYER].moving_sprite_offset_y
-      player_camera_offset_y = self.camera_actual_row - player_true_row
-      player_camera_screen_offset_y = screen_center_row - player_camera_offset_y
+      entity_true_row = entity.row - entity.moving_sprite_offset_y
+      entity_camera_offset_y = self.camera_actual_row - entity_true_row
+      entity_camera_screen_offset_y = screen_center_row - entity_camera_offset_y
+
+      id_by_dir = SINGLETONS[TILE].entities[entity.entity_name][entity.dir]
 
       self.image.blit(
-        SINGLETONS[TILE].surfaces['400'] if SINGLETONS[PLAYER].dir == D \
-          else SINGLETONS[TILE].surfaces['401'] if SINGLETONS[PLAYER].dir == L \
-          else SINGLETONS[TILE].surfaces['402'] if SINGLETONS[PLAYER].dir == U \
-          else SINGLETONS[TILE].surfaces['403'],
+        SINGLETONS[TILE].surfaces[id_by_dir],
         (
-
-          # to-do - make this general to the entity, not just the player
-          player_camera_screen_offset_x * self.TILE_SIZE_IN_PX,
-          player_camera_screen_offset_y * self.TILE_SIZE_IN_PX
+          entity_camera_screen_offset_x * self.TILE_SIZE_IN_PX,
+          entity_camera_screen_offset_y * self.TILE_SIZE_IN_PX
         )
       )
+
+    # Draw player last
+
+    player_true_col = SINGLETONS[PLAYER].col - SINGLETONS[PLAYER].moving_sprite_offset_x
+    player_camera_offset_x = self.camera_actual_col - player_true_col
+    player_camera_screen_offset_x = screen_center_col - player_camera_offset_x
+
+    player_true_row = SINGLETONS[PLAYER].row - SINGLETONS[PLAYER].moving_sprite_offset_y
+    player_camera_offset_y = self.camera_actual_row - player_true_row
+    player_camera_screen_offset_y = screen_center_row - player_camera_offset_y
+
+    self.image.blit(
+      SINGLETONS[TILE].surfaces['400'] if SINGLETONS[PLAYER].dir == D \
+        else SINGLETONS[TILE].surfaces['401'] if SINGLETONS[PLAYER].dir == L \
+        else SINGLETONS[TILE].surfaces['402'] if SINGLETONS[PLAYER].dir == U \
+        else SINGLETONS[TILE].surfaces['403'],
+      (
+
+        # to-do - make this general to the entity, not just the player
+        player_camera_screen_offset_x * self.TILE_SIZE_IN_PX,
+        player_camera_screen_offset_y * self.TILE_SIZE_IN_PX
+      )
+    )
 
   def update(self):
     self.update_camera_world_pos()
