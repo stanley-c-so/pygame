@@ -2,6 +2,7 @@ import pygame as pg
 import os
 
 from globals import *
+from utils import *
 
 FS_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -13,15 +14,15 @@ class Tile():
       None: {},
       '000': { 'filename': 'floor' },
       '018': { 'filename': 'water' },
-      '201': { 'filename': 'wall', 'impassable': True },
-      '312': { 'filename': 'ball_pink', 'dir': D },
-      '313': { 'filename': 'ball_pink', 'dir': L },
-      '314': { 'filename': 'ball_pink', 'dir': U },
-      '315': { 'filename': 'ball_pink', 'dir': R },
-      '400': { 'filename': 'chip_D', 'dir': D },
-      '401': { 'filename': 'chip_L', 'dir': L },
-      '402': { 'filename': 'chip_U', 'dir': U },
-      '403': { 'filename': 'chip_R', 'dir': R },
+      '201': { 'filename': 'wall', impassable: True },
+      '312': { 'filename': 'ball_pink', dir: D },
+      '313': { 'filename': 'ball_pink', dir: L },
+      '314': { 'filename': 'ball_pink', dir: U },
+      '315': { 'filename': 'ball_pink', dir: R },
+      '400': { 'filename': 'chip_D', dir: D },
+      '401': { 'filename': 'chip_L', dir: L },
+      '402': { 'filename': 'chip_U', dir: U },
+      '403': { 'filename': 'chip_R', dir: R },
     }
 
     IMAGE_SIDE_LENGTH_IN_PX = 32

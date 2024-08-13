@@ -2,6 +2,7 @@ import os
 from collections import deque
 
 from globals import *
+from utils import *
 
 from pinkball import Pinkball
 
@@ -46,7 +47,7 @@ class Map():
       # Set entity info within class
       entity.set_coords(row, col)
       entity.set_id(id)
-      entity.set_dir(SINGLETONS[TILE].ids[id]['dir'])
+      entity.set_dir(SINGLETONS[TILE].ids[id][dir])
 
     for row in range(len(chunks_dict[MAP])):
       row_data = chunks_dict[MAP][row]
@@ -94,20 +95,26 @@ class Map():
     # debug_print(f'SENDING MOVEMENT REQUEST')
 
   def process_movement_request(self, request_payload):
-    ( instance, dir ) = request_payload
+    entity = request_payload[0]
+    original_dir = request_payload[1]
+    transform_idx = request_payload[2] if len(request_payload) >= 3 else -1
 
-    row = instance.row
-    col = instance.col
-    entity_name = instance.entity_name
-    layer_idx = LAYER_IDX_PLAYER if entity_name == ENTITY_CHIP else LAYER_IDX_CREATURES
+    row = entity.row
+    col = entity.col
+    name = entity.name
+    
+    transform = 0 if name == ENTITY_CHIP or transform_idx == -1 else entity.redirection_transforms[transform_idx]
+    dir = dir_with_applied_transformation(original_dir, transform)
+
+    layer_idx = LAYER_IDX_PLAYER if name == ENTITY_CHIP else LAYER_IDX_CREATURES
+
+    # Dead
+    if SINGLETONS[PLAYER].dead: return
 
     # Prevent movement spam
-    if instance.move_time != None:
-      # debug_print('CANNOT MOVE YET')
+    if entity.move_time != None and transform_idx == -1:
       return
-    # instance.set_move_time(pg.time.get_ticks())
-    instance.set_move_time(get_GAME_TICKS())
-    # debug_print('STARTING MOVEMENT')
+    entity.set_move_time(get_global_GAME_TICKS())
 
     # Calculate destination
     DELTAS = {
@@ -120,29 +127,54 @@ class Map():
     new_row, new_col = row + dy, col + dx
 
     # Turn entity in intended direction (even if move will fail)
-    instance.turn(dir, entity_name)
-
-    # Common fail condition: Out of bounds
-    if new_row < 0 or new_row == self.HEIGHT_IN_TILES or \
-      new_col < 0 or new_col == self.WIDTH_IN_TILES:
-      debug_print('OUT OF BOUNDS')
-      instance.set_hit_wall(True)
-      return
+    entity.turn(dir, name)
 
     # Player-specific logic
-    if entity_name == ENTITY_CHIP:
+    if name == ENTITY_CHIP:
+
+      # OOB or hit wall
+      if new_row < 0 or new_row == self.HEIGHT_IN_TILES \
+        or new_col < 0 or new_col == self.WIDTH_IN_TILES \
+        or SINGLETONS[TILE].ids[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable):
+        debug_print('hitting a wall')
+        entity.set_hit_wall(True)
+        return
 
       # Move
-      # NOTE: for monsters, also check that they're not bumping into a monster
-      if not SINGLETONS[TILE].ids[self.MAP[new_row][new_col][2]].get('impassable'):
-        instance.set_coords(new_row, new_col)
-        self.MAP[row][col][layer_idx] = None
-        self.MAP[new_row][new_col][layer_idx] = instance
-
-      # Hit wall
       else:
-        debug_print('hitting a wall')
-        instance.set_hit_wall(True)
+        entity.set_coords(new_row, new_col)
+        self.MAP[row][col][layer_idx] = None
+        self.MAP[new_row][new_col][layer_idx] = entity
+
+    # Creature-specific logic
+    else:
+      
+      # OOB or hit wall or creature
+      if new_row < 0 or new_row == self.HEIGHT_IN_TILES \
+        or new_col < 0 or new_col == self.WIDTH_IN_TILES \
+        or SINGLETONS[TILE].ids[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable) \
+        or self.MAP[new_row][new_col][LAYER_IDX_CREATURES] != None:
+        
+        # entity.set_hit_wall_or_creature(True)
+
+        if transform_idx + 1 < len(entity.redirection_transforms):
+          # recurse
+          self.process_movement_request(( entity, original_dir, transform_idx + 1 ))
+          return
+
+        else:
+          debug_print('STUCK!')
+          return
+
+      # Move
+      else:
+        entity.set_coords(new_row, new_col)
+        self.MAP[row][col][layer_idx] = None
+        self.MAP[new_row][new_col][layer_idx] = entity
+
+  def update_all_creatures(self):
+    for creature in self.all_creatures:
+      creature.update()
 
   def handle_all_movement_requests(self):
     while len(self.movement_request_queue):
@@ -156,11 +188,15 @@ class Map():
 
     if self.MAP[player_row][player_col][LAYER_IDX_CREATURES] != None:
       debug_print('CREATURE COLLISION')
+      killing_entity = self.MAP[player_row][player_col][LAYER_IDX_CREATURES]
+      set_global_KILLING_ENTITY(killing_entity)
       SINGLETONS[PLAYER].set_dead(True)
 
   def handle_all_collisions(self):
     self.handle_player_creature_collision()
 
   def update(self):
+    # self.update_all_creatures()
     self.handle_all_movement_requests()
+    self.update_all_creatures()
     self.handle_all_collisions()

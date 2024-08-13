@@ -1,4 +1,5 @@
 from globals import *
+from utils import *
 
 class Player():
 
@@ -7,7 +8,7 @@ class Player():
     # self.cooldown = 500
     # self.cooldown = 1000
 
-    self.entity_name = ENTITY_CHIP
+    self.name = ENTITY_CHIP
 
     self.row = None
     self.col = None
@@ -20,8 +21,7 @@ class Player():
     self.dead = False
 
   def handle_reset_movement_timers(self):
-    # if self.move_time != None and pg.time.get_ticks() - self.move_time >= self.cooldown:
-    if self.move_time != None and get_GAME_TICKS() - self.move_time >= self.cooldown:
+    if self.move_time != None and get_global_GAME_TICKS() - self.move_time >= self.cooldown:
       debug_print('STOPPING MOVEMENT')
       self.move_time = None
       self.hit_wall = False
@@ -34,8 +34,7 @@ class Player():
 
     if self.move_time != None and not self.hit_wall:
 
-      # abs_movement_across_tile_ratio = (pg.time.get_ticks() - self.move_time) / self.cooldown
-      abs_movement_across_tile_ratio = (get_GAME_TICKS() - self.move_time) / self.cooldown
+      abs_movement_across_tile_ratio = (get_global_GAME_TICKS() - self.move_time) / self.cooldown
       abs_movement_across_tile_ratio_in_px = abs_movement_across_tile_ratio * SINGLETONS[CAMERA].TILE_SIZE_IN_PX
       match self.dir:
         case 'D':
@@ -78,9 +77,9 @@ class Player():
   def set_id(self, id):
     self.id = id
 
-  def turn(self, dir, entity_name):
+  def turn(self, dir, name):
     self.set_dir(dir)
-    self.set_id(SINGLETONS[TILE].entities[entity_name][dir])
+    self.set_id(SINGLETONS[TILE].entities[name][dir])
 
   def set_dead(self, bool):
     self.dead = bool

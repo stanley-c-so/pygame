@@ -1,4 +1,5 @@
 from globals import *
+from utils import *
 
 from creature import Creature
 
@@ -9,6 +10,11 @@ class Pinkball(Creature):
     # super() is the parent class; here we call the parent's init
     super().__init__()
 
-    self.entity_name = ENTITY_BALL_PINK
+    self.name = ENTITY_BALL_PINK
 
     self.cooldown = 200
+
+    self.redirection_transforms = [180]
+
+  def update(self):
+    super().update()

@@ -15,6 +15,9 @@ L = 'L'
 D = 'D'
 R = 'R'
 
+dir = 'dir'
+impassable = 'impassable'
+
 INPUT_QUIT = 'INPUT_QUIT'
 INPUT_RESTART = 'INPUT_RESTART'
 INPUT_PAUSE = 'INPUT_PAUSE'
@@ -44,9 +47,12 @@ DEBUG = True
 # Screen
 SCREEN_WIDTH, SCREEN_HEIGHT = 1260, 900
 SCREEN_WINDOW_TITLE = 'Chips'
+SCREEN = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # FPS
-# FPS = 64
+TIME_FACTOR = 1
+# TIME_FACTOR = 0.5
+# TIME_FACTOR = 0.25
 FPS = 60
 
 # Colors
@@ -56,7 +62,10 @@ COLOR_BACKGROUND = 'black'
 
 
 # Fonts
+pg.font.init()
 FONT_SIZE = 100
+FONT_NAME = 'Comic Sans MS'
+FONT = pg.font.SysFont(FONT_NAME, FONT_SIZE)
 
 # Filesystem
 # FS_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -75,6 +84,7 @@ SINGLETONS = {}
 
 INPUTS = set()
 
+
 # ========== GLOBAL VARIABLES ========== #
 
 dt = 0
@@ -85,21 +95,22 @@ def set_dt(t):
   dt = t
 
 GAME_TICKS = 0
-def get_GAME_TICKS():
+def get_global_GAME_TICKS():
   return GAME_TICKS
-def set_GAME_TICKS(ticks):
+def set_global_GAME_TICKS(ticks):
   global GAME_TICKS
   GAME_TICKS = ticks
 
 GAME_PAUSED = False
-def get_GAME_PAUSED():
+def get_global_GAME_PAUSED():
   return GAME_PAUSED
-def set_GAME_PAUSED(bool):
+def set_global_GAME_PAUSED(bool):
   global GAME_PAUSED
   GAME_PAUSED = bool
 
-
-# ========== TESTING ========== #
-
-def debug_print(*args):
-  if DEBUG: print(f"TRUE TICKS {pg.time.get_ticks()} | GAME TICKS {get_GAME_TICKS()} |", *args)
+KILLING_ENTITY = None
+def get_global_KILLING_ENTITY():
+  return KILLING_ENTITY
+def set_global_KILLING_ENTITY(entity):
+  global KILLING_ENTITY
+  KILLING_ENTITY = entity

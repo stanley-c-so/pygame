@@ -1,4 +1,5 @@
 from globals import *
+from utils import *
 
 import math
 
@@ -25,14 +26,14 @@ class Camera():
     self.image = pg.Surface((self.VIEWPORT_WIDTH_IN_PX, self.VIEWPORT_HEIGHT_IN_PX), pg.SRCALPHA)
     self.rect = self.image.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
 
-    # Test surfaces
-    self.test_colors = [
-      'lightgray',
-      'darkgray',
-      'red',
-    ]
-    self.test_sprites = [ pg.Surface((self.TILE_SIZE_IN_PX, self.TILE_SIZE_IN_PX), pg.SRCALPHA) for _ in range(len(self.test_colors)) ]
-    for i in range(len(self.test_colors)): self.test_sprites[i].fill(self.test_colors[i])
+    # # Test surfaces
+    # self.test_colors = [
+    #   'lightgray',
+    #   'darkgray',
+    #   'red',
+    # ]
+    # self.test_sprites = [ pg.Surface((self.TILE_SIZE_IN_PX, self.TILE_SIZE_IN_PX), pg.SRCALPHA) for _ in range(len(self.test_colors)) ]
+    # for i in range(len(self.test_colors)): self.test_sprites[i].fill(self.test_colors[i])
 
     # Init
     self.camera_destination_row = None
@@ -40,6 +41,7 @@ class Camera():
 
   def draw(self, SCREEN):
     SCREEN.blit(self.image, self.rect)
+    self.draw_messages()
 
   def update_camera_world_pos(self):
 
@@ -72,7 +74,7 @@ class Camera():
     self.camera_actual_col = min(self.camera_actual_col, self.MAX_COL)
 
 
-  def draw_all(self):
+  def draw_all_to_self_image(self):
     
     # Clear surface
     self.image.fill('black')
@@ -115,7 +117,7 @@ class Camera():
       entity_camera_offset_y = self.camera_actual_row - entity_true_row
       entity_camera_screen_offset_y = screen_center_row - entity_camera_offset_y
 
-      id_by_dir = SINGLETONS[TILE].entities[entity.entity_name][entity.dir]
+      id_by_dir = SINGLETONS[TILE].entities[entity.name][entity.dir]
 
       self.image.blit(
         SINGLETONS[TILE].surfaces[id_by_dir],
@@ -125,6 +127,12 @@ class Camera():
         )
       )
 
+  def draw_messages(self):
+    player_dead_and_entities_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None and (KILLING_ENTITY == None or KILLING_ENTITY.move_time == None)
+    if player_dead_and_entities_stopped:
+      text_surface = FONT.render('YOU DIED', False, 'yellow')
+      SCREEN.blit(text_surface, (0, 0))
+
   def update(self):
     self.update_camera_world_pos()
-    self.draw_all()
+    self.draw_all_to_self_image()

@@ -7,6 +7,7 @@ from sys import exit
 # ========== IMPORTS ========== #
 
 from globals import *
+from utils import *
 
 from mouse import Mouse
 from kb import Keyboard
@@ -25,7 +26,6 @@ def INIT():
 
   pg.init()
   pg.display.set_caption(SCREEN_WINDOW_TITLE)
-  # FONT = pg.font.Font(None, FONT_SIZE)
 
   SINGLETONS[MOUSE] = Mouse()
   SINGLETONS[KEYBOARD] = Keyboard()
@@ -41,21 +41,19 @@ def INIT():
 
   SINGLETONS[CAMERA] = Camera()
 
-  # SINGLETONS[CAMERA].init()
-  # SINGLETONS[MAP].init()
-  # SINGLETONS[PLAYER].init()
+  set_global_GAME_PAUSED(False)
 
   SCREEN.fill(COLOR_BACKGROUND)
 
 
 def TOGGLE_PAUSE():
-  game_paused = get_GAME_PAUSED()
+  game_paused = get_global_GAME_PAUSED()
   if game_paused:
-    debug_print('UNPAUSING')
-    set_GAME_PAUSED(False)
+    # debug_print('UNPAUSING')
+    set_global_GAME_PAUSED(False)
   else:
-    debug_print('PAUSING')
-    set_GAME_PAUSED(True)
+    # debug_print('PAUSING')
+    set_global_GAME_PAUSED(True)
 
 def RESTART():
   debug_print('RESTARTING')
@@ -101,13 +99,12 @@ def handle_local_inputs():
     RESTART()
 
   if INPUT_PAUSE in INPUTS:
-    debug_print('TOGGLE PAUSE')
+    # debug_print('TOGGLE PAUSE')
     TOGGLE_PAUSE()
 
 
 # ========== GAME LOOP ========== #
 
-SCREEN = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 INIT()
 
 while True:
@@ -115,8 +112,9 @@ while True:
   GET_INPUTS()
   HANDLE_EVENTS()
 
-  player_dead_and_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None
-  game_running = not get_GAME_PAUSED() and not player_dead_and_stopped
+  killing_entity = get_global_KILLING_ENTITY()
+  player_dead_and_entities_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None and (killing_entity == None or killing_entity.move_time == None)
+  game_running = not get_global_GAME_PAUSED() and not player_dead_and_entities_stopped
 
   if game_running:
     UPDATE_SINGLETONS()
@@ -125,9 +123,9 @@ while True:
 
   INPUTS.clear()
   pg.display.update()
-  set_dt(SINGLETONS[CLOCK].tick(FPS))
+  set_dt(SINGLETONS[CLOCK].tick(FPS) * TIME_FACTOR)
 
   if game_running:
     dt = get_dt()
-    GAME_TICKS = get_GAME_TICKS()
-    set_GAME_TICKS(GAME_TICKS + dt)
+    GAME_TICKS = get_global_GAME_TICKS()
+    set_global_GAME_TICKS(GAME_TICKS + dt)
