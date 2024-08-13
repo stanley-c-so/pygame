@@ -4,11 +4,7 @@ import math
 
 class Camera():
 
-  # def __init__(self):
-  #   self.init()
-
   def __init__(self):
-  # def init(self):
 
     # Constants
     self.TILE_SIZE_IN_PX = 64
@@ -47,20 +43,23 @@ class Camera():
 
   def update_camera_world_pos(self):
 
+    player_row = SINGLETONS[PLAYER].row
+    player_col = SINGLETONS[PLAYER].col
+
     # NOTE: values are integers
-    self.camera_destination_row = self.MIN_ROW if SINGLETONS[PLAYER].row < self.MIN_ROW \
-                                    else self.MAX_ROW if SINGLETONS[PLAYER].row > self.MAX_ROW \
-                                    else SINGLETONS[PLAYER].row
-    self.camera_destination_col = self.MIN_COL if SINGLETONS[PLAYER].col < self.MIN_COL \
-                                    else self.MAX_COL if SINGLETONS[PLAYER].col > self.MAX_COL \
-                                    else SINGLETONS[PLAYER].col
+    self.camera_destination_row = self.MIN_ROW if player_row < self.MIN_ROW \
+                                    else self.MAX_ROW if player_row > self.MAX_ROW \
+                                    else player_row
+    self.camera_destination_col = self.MIN_COL if player_col < self.MIN_COL \
+                                    else self.MAX_COL if player_col > self.MAX_COL \
+                                    else player_col
 
     # NOTE: camera does not move when you are close to the edge of the map, hence 0. else, values may be floats
-    self.moving_camera_offset_x = 0 if (SINGLETONS[PLAYER].moving_sprite_offset_x < 0 and SINGLETONS[PLAYER].col < self.MIN_COL \
-                                      or SINGLETONS[PLAYER].moving_sprite_offset_x > 0 and SINGLETONS[PLAYER].col > self.MAX_COL) \
+    self.moving_camera_offset_x = 0 if (SINGLETONS[PLAYER].moving_sprite_offset_x < 0 and player_col < self.MIN_COL \
+                                      or SINGLETONS[PLAYER].moving_sprite_offset_x > 0 and player_col > self.MAX_COL) \
                                     else SINGLETONS[PLAYER].moving_sprite_offset_x
-    self.moving_camera_offset_y = 0 if (SINGLETONS[PLAYER].moving_sprite_offset_y < 0 and SINGLETONS[PLAYER].row < self.MIN_ROW \
-                                      or SINGLETONS[PLAYER].moving_sprite_offset_y > 0 and SINGLETONS[PLAYER].row > self.MAX_ROW) \
+    self.moving_camera_offset_y = 0 if (SINGLETONS[PLAYER].moving_sprite_offset_y < 0 and player_row < self.MIN_ROW \
+                                      or SINGLETONS[PLAYER].moving_sprite_offset_y > 0 and player_row > self.MAX_ROW) \
                                     else SINGLETONS[PLAYER].moving_sprite_offset_y
 
     # NOTE: values are floats, and must be bounded by MIN_ROW and MAX_ROW to avoid bug when moving in the direction away from the nearby edge
@@ -91,32 +90,22 @@ class Camera():
         for x in SINGLETONS[MAP].MAP[map_row][map_col]:
           if x == None: continue
 
-          # ORIGINAL CODE WITHOUT SCROLLING CAMERA
-          # self.image.blit(SINGLETONS[TILE].surfaces[id], (col * self.TILE_SIZE_IN_PX, row * self.TILE_SIZE_IN_PX))
+          is_instance = type(x) != str
+          if is_instance: continue
 
-          # instance = None if type(x) == str else x
-          # id = x if type(x) == str else instance.id
-
-          # # don't draw any moving entities
-          # # if instance and instance.move_time != None: continue
-          # # to-do: in fact, don't draw any entities that can potentially move at all ???
-          # if instance: continue
-
-          if type(x) != str: continue
           id = x
 
           self.image.blit(
             SINGLETONS[TILE].surfaces[id],
-            # to-do: fix above line if we are not drawing movable entities
             (
               (col + (self.camera_destination_col - self.camera_actual_col)) * self.TILE_SIZE_IN_PX,
               (row + (self.camera_destination_row - self.camera_actual_row)) * self.TILE_SIZE_IN_PX,
             )
           )
 
-    # Draw entities
+    # Draw entities (draw player last)
 
-    for entity in SINGLETONS[MAP].all_creatures:
+    for entity in [ *SINGLETONS[MAP].all_creatures, SINGLETONS[PLAYER] ]:
 
       entity_true_col = entity.col - entity.moving_sprite_offset_x
       entity_camera_offset_x = self.camera_actual_col - entity_true_col
@@ -135,29 +124,6 @@ class Camera():
           entity_camera_screen_offset_y * self.TILE_SIZE_IN_PX
         )
       )
-
-    # Draw player last
-
-    player_true_col = SINGLETONS[PLAYER].col - SINGLETONS[PLAYER].moving_sprite_offset_x
-    player_camera_offset_x = self.camera_actual_col - player_true_col
-    player_camera_screen_offset_x = screen_center_col - player_camera_offset_x
-
-    player_true_row = SINGLETONS[PLAYER].row - SINGLETONS[PLAYER].moving_sprite_offset_y
-    player_camera_offset_y = self.camera_actual_row - player_true_row
-    player_camera_screen_offset_y = screen_center_row - player_camera_offset_y
-
-    self.image.blit(
-      SINGLETONS[TILE].surfaces['400'] if SINGLETONS[PLAYER].dir == D \
-        else SINGLETONS[TILE].surfaces['401'] if SINGLETONS[PLAYER].dir == L \
-        else SINGLETONS[TILE].surfaces['402'] if SINGLETONS[PLAYER].dir == U \
-        else SINGLETONS[TILE].surfaces['403'],
-      (
-
-        # to-do - make this general to the entity, not just the player
-        player_camera_screen_offset_x * self.TILE_SIZE_IN_PX,
-        player_camera_screen_offset_y * self.TILE_SIZE_IN_PX
-      )
-    )
 
   def update(self):
     self.update_camera_world_pos()

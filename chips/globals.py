@@ -17,6 +17,8 @@ R = 'R'
 
 INPUT_QUIT = 'INPUT_QUIT'
 INPUT_RESTART = 'INPUT_RESTART'
+INPUT_PAUSE = 'INPUT_PAUSE'
+
 INPUT_UP = 'INPUT_UP'
 INPUT_LEFT = 'INPUT_LEFT'
 INPUT_DOWN = 'INPUT_DOWN'
@@ -65,9 +67,7 @@ FONT_SIZE = 100
 # ASSETS_IMG_SURF = pg.transform.rotozoom(some_img, 0, img_scale)
 
 
-# ========== GLOBAL VARIABLES ========== #
-
-dt = 0
+# ========== GLOBAL DATA STRUCTURES ========== #
 
 ALL_EVENT_TYPES_DICT = {}
 
@@ -75,8 +75,31 @@ SINGLETONS = {}
 
 INPUTS = set()
 
+# ========== GLOBAL VARIABLES ========== #
+
+dt = 0
+def get_dt():
+  return dt
+def set_dt(t):
+  global dt
+  dt = t
+
+GAME_TICKS = 0
+def get_GAME_TICKS():
+  return GAME_TICKS
+def set_GAME_TICKS(ticks):
+  global GAME_TICKS
+  GAME_TICKS = ticks
+
+GAME_PAUSED = False
+def get_GAME_PAUSED():
+  return GAME_PAUSED
+def set_GAME_PAUSED(bool):
+  global GAME_PAUSED
+  GAME_PAUSED = bool
+
 
 # ========== TESTING ========== #
 
 def debug_print(*args):
-  if DEBUG: print(f"{pg.time.get_ticks()} |", *args)
+  if DEBUG: print(f"TRUE TICKS {pg.time.get_ticks()} | GAME TICKS {get_GAME_TICKS()} |", *args)

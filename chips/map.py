@@ -14,6 +14,12 @@ TILE_DELIMITER = '|'
 LAYER_DELIMITER = ','
 NONE = '___'
 
+LAYER_IDX_FLOORS = 0
+LAYER_IDX_PICKUPS = 1
+LAYER_IDX_WALLS = 2
+LAYER_IDX_CREATURES = 3
+LAYER_IDX_PLAYER = 4
+
 class Map():
 
   def parse(self, data):
@@ -28,13 +34,13 @@ class Map():
     }
 
     # PROCESS MAP
-    def init_entity(entity, map_col, row, col, id):
+    def init_entity(entity, map_col, row, col, id, is_player = False):
 
       # Add entity to map
       map_col.append(entity)
 
       # Add non-player entity to entities list
-      if entity != SINGLETONS[PLAYER]:
+      if not is_player:
         self.all_creatures.append(entity)
       
       # Set entity info within class
@@ -44,16 +50,18 @@ class Map():
 
     for row in range(len(chunks_dict[MAP])):
       row_data = chunks_dict[MAP][row]
-      split = row_data.split(TILE_DELIMITER)
+      row_data_split = row_data.split(TILE_DELIMITER)
       map_row = []
-      for col in range(len(split)):
-        col_data = split[col]
+      for col in range(len(row_data_split)):
         map_col = []
-        for id in col_data.split(LAYER_DELIMITER):
+        col_data_split = row_data_split[col].split(LAYER_DELIMITER)
+        for layer_idx in range(len(col_data_split)):
+          id = col_data_split[layer_idx]
           if SINGLETONS[TILE].is_player(id):
-            init_entity(SINGLETONS[PLAYER], map_col, row, col, id)
-          # to-do: make this generate an entity class instance for monsters
+            if layer_idx != LAYER_IDX_PLAYER: assert False
+            init_entity(SINGLETONS[PLAYER], map_col, row, col, id, True)
           elif SINGLETONS[TILE].is_pinkball(id):
+            if layer_idx != LAYER_IDX_CREATURES: assert False
             init_entity(Pinkball(), map_col, row, col, id)
           elif id == NONE:
             map_col.append(None)
@@ -66,11 +74,7 @@ class Map():
 
     return res
 
-  # def __init__(self):
-  #   self.init()
-
   def __init__(self):
-  # def init(self):
 
     # Init
     self.movement_request_queue = deque()
@@ -95,13 +99,14 @@ class Map():
     row = instance.row
     col = instance.col
     entity_name = instance.entity_name
-    layer_idx = 4 if entity_name == ENTITY_CHIP else 3
+    layer_idx = LAYER_IDX_PLAYER if entity_name == ENTITY_CHIP else LAYER_IDX_CREATURES
 
     # Prevent movement spam
     if instance.move_time != None:
       # debug_print('CANNOT MOVE YET')
       return
-    instance.set_move_time(pg.time.get_ticks())
+    # instance.set_move_time(pg.time.get_ticks())
+    instance.set_move_time(get_GAME_TICKS())
     # debug_print('STARTING MOVEMENT')
 
     # Calculate destination
@@ -144,6 +149,18 @@ class Map():
       request_payload = self.movement_request_queue.popleft()
       # debug_print(f'PROCESSING MOVEMENT REQUEST WITH PAYLOAD: {request_payload}')
       self.process_movement_request(request_payload)
-      
+
+  def handle_player_creature_collision(self):
+    player_row = SINGLETONS[PLAYER].row
+    player_col = SINGLETONS[PLAYER].col
+
+    if self.MAP[player_row][player_col][LAYER_IDX_CREATURES] != None:
+      debug_print('CREATURE COLLISION')
+      SINGLETONS[PLAYER].set_dead(True)
+
+  def handle_all_collisions(self):
+    self.handle_player_creature_collision()
+
   def update(self):
     self.handle_all_movement_requests()
+    self.handle_all_collisions()

@@ -10,6 +10,8 @@ class Keyboard():
             INPUTS.add(INPUT_QUIT)
           case pg.K_r:
             INPUTS.add(INPUT_RESTART)
+          case pg.K_p:
+            INPUTS.add(INPUT_PAUSE)
 
   def handle_keypress(self):
     keys = pg.key.get_pressed()

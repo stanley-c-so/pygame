@@ -48,6 +48,15 @@ def INIT():
   SCREEN.fill(COLOR_BACKGROUND)
 
 
+def TOGGLE_PAUSE():
+  game_paused = get_GAME_PAUSED()
+  if game_paused:
+    debug_print('UNPAUSING')
+    set_GAME_PAUSED(False)
+  else:
+    debug_print('PAUSING')
+    set_GAME_PAUSED(True)
+
 def RESTART():
   debug_print('RESTARTING')
   INIT()
@@ -81,7 +90,7 @@ def UPDATE_SINGLETONS():
   SINGLETONS[CAMERA].update()
   SINGLETONS[CAMERA].draw(SCREEN)
 
-def handle_inputs():
+def handle_local_inputs():
 
   if INPUT_QUIT in INPUTS:
     debug_print('QUIT')
@@ -91,16 +100,34 @@ def handle_inputs():
     debug_print('RESTART')
     RESTART()
 
+  if INPUT_PAUSE in INPUTS:
+    debug_print('TOGGLE PAUSE')
+    TOGGLE_PAUSE()
+
 
 # ========== GAME LOOP ========== #
 
 SCREEN = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 INIT()
+
 while True:
+
   GET_INPUTS()
   HANDLE_EVENTS()
-  UPDATE_SINGLETONS()
-  handle_inputs()
+
+  player_dead_and_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None
+  game_running = not get_GAME_PAUSED() and not player_dead_and_stopped
+
+  if game_running:
+    UPDATE_SINGLETONS()
+
+  handle_local_inputs()
+
   INPUTS.clear()
   pg.display.update()
-  dt = SINGLETONS[CLOCK].tick(FPS)
+  set_dt(SINGLETONS[CLOCK].tick(FPS))
+
+  if game_running:
+    dt = get_dt()
+    GAME_TICKS = get_GAME_TICKS()
+    set_GAME_TICKS(GAME_TICKS + dt)
