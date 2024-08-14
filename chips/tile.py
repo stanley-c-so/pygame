@@ -4,25 +4,43 @@ import os
 from globals import *
 from utils import *
 
+from pinkball import Pinkball
+from glider import Glider
+from fireball import Fireball
+
 FS_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 class Tile():
 
   def __init__(self):
 
-    self.ids = {
+    self.data_by_id = {
       None: {},
-      '000': { 'filename': 'floor' },
-      '018': { 'filename': 'water' },
-      '201': { 'filename': 'wall', impassable: True },
-      '312': { 'filename': 'ball_pink', dir: D },
-      '313': { 'filename': 'ball_pink', dir: L },
-      '314': { 'filename': 'ball_pink', dir: U },
-      '315': { 'filename': 'ball_pink', dir: R },
-      '400': { 'filename': 'chip_D', dir: D },
-      '401': { 'filename': 'chip_L', dir: L },
-      '402': { 'filename': 'chip_U', dir: U },
-      '403': { 'filename': 'chip_R', dir: R },
+
+      '000': { filename: 'floor' },
+      '018': { filename: 'water', interactive: True },
+      '019': { filename: 'water_dead' },
+      '032': { filename: 'fire', interactive: True },
+      '033': { filename: 'fire_dead', },
+      '201': { filename: 'wall', impassable: True },
+      
+      '312': { filename: 'ball_pink', dir: D, entity_class: Pinkball },
+      '313': { filename: 'ball_pink', dir: L, entity_class: Pinkball },
+      '314': { filename: 'ball_pink', dir: U, entity_class: Pinkball },
+      '315': { filename: 'ball_pink', dir: R, entity_class: Pinkball },
+      '320': { filename: 'glider_D', dir: D, entity_class: Glider },
+      '321': { filename: 'glider_L', dir: L, entity_class: Glider },
+      '322': { filename: 'glider_U', dir: U, entity_class: Glider },
+      '323': { filename: 'glider_R', dir: R, entity_class: Glider },
+      '324': { filename: 'fireball', dir: D, entity_class: Fireball },
+      '325': { filename: 'fireball', dir: L, entity_class: Fireball },
+      '326': { filename: 'fireball', dir: U, entity_class: Fireball },
+      '327': { filename: 'fireball', dir: R, entity_class: Fireball },
+
+      '400': { filename: 'chip_D', dir: D },
+      '401': { filename: 'chip_L', dir: L },
+      '402': { filename: 'chip_U', dir: U },
+      '403': { filename: 'chip_R', dir: R },
     }
 
     IMAGE_SIDE_LENGTH_IN_PX = 32
@@ -30,15 +48,14 @@ class Tile():
 
     self.surfaces = {
       id: pg.transform.scale(
-        pg.image.load(FS_CURRENT_DIR + '\\' + f'{self.ids[id]["filename"]}.png').convert_alpha(),
+        pg.image.load(FS_CURRENT_DIR + '\\' + f'{self.data_by_id[id]["filename"]}.png').convert_alpha(),
         (IMAGE_SIDE_LENGTH_IN_PX * IMAGE_SCALE, IMAGE_SIDE_LENGTH_IN_PX * IMAGE_SCALE)
-      ) for id in self.ids \
+      ) for id in self.data_by_id \
         if id != None
     }
     for surface in self.surfaces.values(): surface.set_colorkey((255, 192, 255))
 
-    self.entities = {
-      ENTITY_CHIP: { D: '400', L: '401', U: '402', R: '403' },
+    self.creatures = {
       ENTITY_BUG: { D: '300', L: '301', U: '302', R: '303' },
       ENTITY_PARAMECIUM: { D: '304', L: '305', U: '306', R: '307' },
       ENTITY_TANK: { D: '308', L: '309', U: '310', R: '311' },
@@ -50,8 +67,25 @@ class Tile():
       ENTITY_BLOB: { D: '332', L: '333', U: '334', R: '335' },
     }
 
+    self.creature_ids = flatten([ list(dd.values()) for dd in [ d for d in self.creatures.values() ] ])
+
+    self.entities = {
+      ENTITY_CHIP: { D: '400', L: '401', U: '402', R: '403' },
+      **self.creatures
+    }
+
+    self.interactive_floors = {
+      INTERACTIVE_FLOOR_WATER: '018',
+      INTERACTIVE_FLOOR_FIRE: '032',
+    }
+
+    self.death_tiles = {
+      INTERACTIVE_FLOOR_WATER: '019',
+      INTERACTIVE_FLOOR_FIRE: '033',
+    }
+
   def is_player(self, id):
-    return id in ('400', '401', '402', '403')
+    return id in self.entities[ENTITY_CHIP].values()
   
-  def is_pinkball(self, id):
-    return id in ('312', '313', '314', '315')
+  def is_creature(self, id):
+    return id in self.creature_ids

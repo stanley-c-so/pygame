@@ -57,22 +57,24 @@ Floor type:
 016 - Teleport
 017 - Clone machine
 018 - Water
-019 - Ice
-020 - Ice corner (NE)
-021 - Ice corner (SE)
-022 - Ice corner (SW)
-023 - Ice corner (NW)
-024 - Dirt
-025 - Gravel
-026 - Force field (N)
-027 - Force field (E)
-028 - Force field (S)
-029 - Force field (W)
-030 - Force field (random)
-031 - Fire
-032 - Bomb
-033 - Thief
-034 - Exit
+019 - Water (DEAD)
+020 - Ice
+021 - Ice corner (NE)
+022 - Ice corner (SE)
+023 - Ice corner (SW)
+024 - Ice corner (NW)
+025 - Dirt
+026 - Gravel
+027 - Force field (N)
+028 - Force field (E)
+029 - Force field (S)
+030 - Force field (W)
+031 - Force field (random)
+032 - Fire
+033 - Fire (DEAD)
+034 - Bomb
+035 - Thief
+036 - Exit
 
 Pickup type:
 

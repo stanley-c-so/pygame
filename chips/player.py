@@ -5,8 +5,6 @@ class Player():
 
   def __init__(self):
     self.cooldown = 200
-    # self.cooldown = 500
-    # self.cooldown = 1000
 
     self.name = ENTITY_CHIP
 
@@ -20,9 +18,18 @@ class Player():
     self.hit_wall = False
     self.dead = False
 
+    self.boots_water = False
+    self.boots_fire = False
+    self.boots_forcefield = False
+    self.boots_ice = False
+    self.keys_blue = 0
+    self.keys_red = 0
+    self.keys_green = 0
+    self.keys_yellow = 0
+
   def handle_reset_movement_timers(self):
     if self.move_time != None and get_global_GAME_TICKS() - self.move_time >= self.cooldown:
-      debug_print('STOPPING MOVEMENT')
+      # debug_print('STOPPING MOVEMENT')
       self.move_time = None
       self.hit_wall = False
 
@@ -77,9 +84,9 @@ class Player():
   def set_id(self, id):
     self.id = id
 
-  def turn(self, dir, name):
+  def turn(self, dir):
     self.set_dir(dir)
-    self.set_id(SINGLETONS[TILE].entities[name][dir])
+    self.set_id(SINGLETONS[TILE].entities[self.name][dir])
 
   def set_dead(self, bool):
     self.dead = bool

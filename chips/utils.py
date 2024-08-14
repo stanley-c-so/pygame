@@ -14,6 +14,13 @@ def dir_with_applied_transformation(dir, transform):
   if idx_delta == -1: assert False
   return DIRS[ (DIRS.index(dir) + idx_delta) % 4 ]
 
+def flatten(list_of_lists):
+  output = []
+  for l in list_of_lists:
+    for x in l:
+      output.append(x)
+  return output
+
 # ========== TESTING ========== #
 
 def debug_print(*args):

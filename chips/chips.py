@@ -27,6 +27,9 @@ def INIT():
   pg.init()
   pg.display.set_caption(SCREEN_WINDOW_TITLE)
 
+  reset_global_data_structures()
+  reset_global_vars()
+
   SINGLETONS[MOUSE] = Mouse()
   SINGLETONS[KEYBOARD] = Keyboard()
 
@@ -41,7 +44,6 @@ def INIT():
 
   SINGLETONS[CAMERA] = Camera()
 
-  set_global_GAME_PAUSED(False)
 
   SCREEN.fill(COLOR_BACKGROUND)
 
@@ -64,6 +66,13 @@ def QUIT():
   pg.quit()
   exit()
 
+def UPDATE_GAME_OVER():
+  killing_entity = get_global_KILLING_ENTITY()
+  game_over = SINGLETONS[PLAYER].dead \
+                and SINGLETONS[PLAYER].move_time == None \
+                and (killing_entity == None or killing_entity.move_time == None)
+  if game_over: set_global_GAME_OVER(True)
+
 def GET_INPUTS():
 
   # Get inputs
@@ -78,11 +87,12 @@ def HANDLE_EVENTS():
     ALL_EVENT_TYPES_DICT[event.type] = []
     ALL_EVENT_TYPES_DICT[event.type].append(event)
 
-def UPDATE_SINGLETONS():
+def UPDATE_SINGLETONS(game_running):
 
   # Update state
-  SINGLETONS[MAP].update()
-  SINGLETONS[PLAYER].update()
+  if (game_running):
+    SINGLETONS[MAP].update()
+    SINGLETONS[PLAYER].update()
 
   # Draw
   SINGLETONS[CAMERA].update()
@@ -101,7 +111,7 @@ def handle_local_inputs():
   if INPUT_PAUSE in INPUTS:
     # debug_print('TOGGLE PAUSE')
     TOGGLE_PAUSE()
-
+  
 
 # ========== GAME LOOP ========== #
 
@@ -109,15 +119,13 @@ INIT()
 
 while True:
 
+  UPDATE_GAME_OVER()
+  game_running = not get_global_GAME_PAUSED() and not get_global_GAME_OVER()
+
   GET_INPUTS()
   HANDLE_EVENTS()
 
-  killing_entity = get_global_KILLING_ENTITY()
-  player_dead_and_entities_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None and (killing_entity == None or killing_entity.move_time == None)
-  game_running = not get_global_GAME_PAUSED() and not player_dead_and_entities_stopped
-
-  if game_running:
-    UPDATE_SINGLETONS()
+  UPDATE_SINGLETONS(game_running)
 
   handle_local_inputs()
 

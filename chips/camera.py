@@ -118,9 +118,13 @@ class Camera():
       entity_camera_screen_offset_y = screen_center_row - entity_camera_offset_y
 
       id_by_dir = SINGLETONS[TILE].entities[entity.name][entity.dir]
+      player_special_id = None
+      killing_hazard = get_global_KILLING_HAZARD()
+      death_tile_id = SINGLETONS[TILE].death_tiles[killing_hazard] if killing_hazard and entity == SINGLETONS[PLAYER] and get_global_GAME_OVER() else None
+      surface_to_draw = SINGLETONS[TILE].surfaces[ player_special_id or death_tile_id or id_by_dir ]
 
       self.image.blit(
-        SINGLETONS[TILE].surfaces[id_by_dir],
+        surface_to_draw,
         (
           entity_camera_screen_offset_x * self.TILE_SIZE_IN_PX,
           entity_camera_screen_offset_y * self.TILE_SIZE_IN_PX
@@ -128,8 +132,8 @@ class Camera():
       )
 
   def draw_messages(self):
-    player_dead_and_entities_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None and (KILLING_ENTITY == None or KILLING_ENTITY.move_time == None)
-    if player_dead_and_entities_stopped:
+    # player_dead_and_entities_stopped = SINGLETONS[PLAYER].dead and SINGLETONS[PLAYER].move_time == None and (KILLING_ENTITY == None or KILLING_ENTITY.move_time == None)
+    if get_global_GAME_OVER():
       text_surface = FONT.render('YOU DIED', False, 'yellow')
       SCREEN.blit(text_surface, (0, 0))
 
