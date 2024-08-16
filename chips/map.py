@@ -7,6 +7,7 @@ from utils import *
 FILENAME = 'map1'
 # FILENAME = 'map2'
 # FILENAME = 'map3'
+FILENAME = 'level1'
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 INPUT_PATH = CURRENT_DIR + '\\' + FILENAME + '.txt'
 data = open(INPUT_PATH, 'r').read()
