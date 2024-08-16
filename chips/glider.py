@@ -10,11 +10,15 @@ class Glider(Creature):
     # super() is the parent class; here we call the parent's init
     super().__init__()
 
+    # CONSTANTS
     self.name = ENTITY_GLIDER
-
     self.cooldown = 200
+    self.redirection_transforms = [ 0, 270, 90, 180 ]
+    self.invincible_to = set((
+      INTERACTIVE_FLOOR_WATER,
+    ))
 
-    self.redirection_transforms = [ 270, 90, 180 ]
+    # VARIABLES
 
   def update(self):
     super().update()

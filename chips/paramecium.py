@@ -3,7 +3,7 @@ from utils import *
 
 from creature import Creature
 
-class Pinkball(Creature):
+class Paramecium(Creature):
 
   def __init__(self):
 
@@ -11,9 +11,9 @@ class Pinkball(Creature):
     super().__init__()
 
     # CONSTANTS
-    self.name = ENTITY_BALL_PINK
+    self.name = ENTITY_PARAMECIUM
     self.cooldown = 200
-    self.redirection_transforms = [ 0, 180 ]
+    self.redirection_transforms = [ 90, 0, 270, 180 ]
     self.invincible_to = set(())
 
     # VARIABLES

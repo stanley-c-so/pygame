@@ -101,7 +101,7 @@ class Map():
   def process_movement_request(self, request_payload):
     entity = request_payload[0]
     original_dir = request_payload[1]
-    transform_idx = request_payload[2] if len(request_payload) >= 3 else -1
+    transform_idx = request_payload[2] if len(request_payload) >= 3 else 0
 
     # Dead
     if entity.dead: return
@@ -110,14 +110,13 @@ class Map():
     col = entity.col
     name = entity.name
     
-    transform = 0 if name == ENTITY_CHIP or transform_idx == -1 else entity.redirection_transforms[transform_idx]
+    transform = 0 if name == ENTITY_CHIP else entity.redirection_transforms[transform_idx]
     dir = dir_with_applied_transformation(original_dir, transform)
 
     layer_idx = LAYER_IDX_PLAYER if name == ENTITY_CHIP else LAYER_IDX_CREATURES
 
-    # Prevent movement spam
-    if entity.move_time != None and transform_idx == -1:
-      return
+    # Prevent movement spamW
+    if entity.move_time != None and transform_idx == 0: return
     entity.set_move_time(get_global_GAME_TICKS())
 
     # Calculate destination
@@ -158,8 +157,6 @@ class Map():
         or new_col < 0 or new_col == self.WIDTH_IN_TILES \
         or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable) \
         or self.MAP[new_row][new_col][LAYER_IDX_CREATURES] != None:
-        
-        # entity.set_hit_wall_or_creature(True)
 
         if transform_idx + 1 < len(entity.redirection_transforms):
           # recurse
@@ -204,11 +201,13 @@ class Map():
     if id == None or not SINGLETONS[TILE].data_by_id[id].get(interactive): return
     
     if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_WATER] == id:
+      if SINGLETONS[PLAYER].dead: return
       if SINGLETONS[PLAYER].boots_water: return
       set_global_KILLING_HAZARD(INTERACTIVE_FLOOR_WATER)
       SINGLETONS[PLAYER].set_dead(True)
       debug_print(f'PLAYER-HAZARD COLLISION - killed by WATER')
     if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_FIRE] == id:
+      if SINGLETONS[PLAYER].dead: return
       if SINGLETONS[PLAYER].boots_fire: return
       set_global_KILLING_HAZARD(INTERACTIVE_FLOOR_FIRE)
       SINGLETONS[PLAYER].set_dead(True)
@@ -223,12 +222,11 @@ class Map():
 
     if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_WATER] == id:
       if creature.dead: return
-      if creature.name == ENTITY_GLIDER: return
+      if INTERACTIVE_FLOOR_WATER in creature.invincible_to: return
       creature.set_dead(True)
     if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_FIRE] == id:
       if creature.dead: return
-      if creature.name == ENTITY_FIREBALL: return
-      # if SINGLETONS[PLAYER].boots_fire: return
+      if INTERACTIVE_FLOOR_FIRE in creature.invincible_to: return
       debug_print(f'CREATURE-HAZARD COLLISION - killed by FIRE')
       creature.set_dead(True)
 

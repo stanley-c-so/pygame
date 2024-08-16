@@ -4,6 +4,8 @@ import os
 from globals import *
 from utils import *
 
+from bug import Bug
+from paramecium import Paramecium
 from pinkball import Pinkball
 from glider import Glider
 from fireball import Fireball
@@ -24,6 +26,14 @@ class Tile():
       '033': { filename: 'fire_dead', },
       '201': { filename: 'wall', impassable: True },
       
+      '300': { filename: 'bug_D', dir: D, entity_class: Bug },
+      '301': { filename: 'bug_L', dir: L, entity_class: Bug },
+      '302': { filename: 'bug_U', dir: U, entity_class: Bug },
+      '303': { filename: 'bug_R', dir: R, entity_class: Bug },
+      '304': { filename: 'paramecium_UD', dir: D, entity_class: Paramecium },
+      '305': { filename: 'paramecium_LR', dir: L, entity_class: Paramecium },
+      '306': { filename: 'paramecium_UD', dir: U, entity_class: Paramecium },
+      '307': { filename: 'paramecium_LR', dir: R, entity_class: Paramecium },
       '312': { filename: 'ball_pink', dir: D, entity_class: Pinkball },
       '313': { filename: 'ball_pink', dir: L, entity_class: Pinkball },
       '314': { filename: 'ball_pink', dir: U, entity_class: Pinkball },

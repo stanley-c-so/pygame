@@ -4,10 +4,13 @@ from utils import *
 class Player():
 
   def __init__(self):
+
+    # CONSTANTS
     self.cooldown = 200
-
     self.name = ENTITY_CHIP
+    self.invincible_to = set(())
 
+    # VARIABLES
     self.row = None
     self.col = None
     self.id = None
