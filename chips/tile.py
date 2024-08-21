@@ -13,6 +13,10 @@ from fireball import Fireball
 
 FS_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+IMAGE_SIDE_LENGTH_IN_PX = 32
+IMAGE_SCALE = 2
+TRANSPARENT_COLORKEY = (255, 192, 255)
+
 class Tile():
 
   def __init__(self):
@@ -28,11 +32,11 @@ class Tile():
       '033': { filename: 'fire_dead' },
       '036': { filename: 'exit_1' },
 
-      '100': { filename: 'key_blue' },
-      '101': { filename: 'key_red' },
-      '102': { filename: 'key_green' },
-      '103': { filename: 'key_yellow' },
-      '108': { filename: 'computer_chip' },
+      '100': { filename: 'key_blue', impassable_for_creatures: True },
+      '101': { filename: 'key_red', impassable_for_creatures: True },
+      '102': { filename: 'key_green', impassable_for_creatures: True },
+      '103': { filename: 'key_yellow', impassable_for_creatures: True },
+      '108': { filename: 'computer_chip', impassable_for_creatures: True },
 
       '200': { filename: 'socket', impassable_for_creatures: True },
       '201': { filename: 'wall', impassable: True },
@@ -68,18 +72,6 @@ class Tile():
       '403': { filename: 'chip_R', dir: R },
     }
 
-    IMAGE_SIDE_LENGTH_IN_PX = 32
-    IMAGE_SCALE = 2
-
-    self.surfaces = {
-      id: pg.transform.scale(
-        pg.image.load(FS_CURRENT_DIR + '\\' + f'{self.data_by_id[id]["filename"]}.png').convert_alpha(),
-        (IMAGE_SIDE_LENGTH_IN_PX * IMAGE_SCALE, IMAGE_SIDE_LENGTH_IN_PX * IMAGE_SCALE)
-      ) for id in self.data_by_id \
-        if id != None
-    }
-    for surface in self.surfaces.values(): surface.set_colorkey((255, 192, 255))
-
     self.creatures = {
       ENTITY_BUG: { D: '300', L: '301', U: '302', R: '303' },
       ENTITY_PARAMECIUM: { D: '304', L: '305', U: '306', R: '307' },
@@ -108,6 +100,15 @@ class Tile():
       INTERACTIVE_FLOOR_WATER: '019',
       INTERACTIVE_FLOOR_FIRE: '033',
     }
+
+    self.surfaces = {
+      id: pg.transform.scale(
+        pg.image.load(FS_CURRENT_DIR + '\\' + f'{self.data_by_id[id]["filename"]}.png').convert_alpha(),
+        (IMAGE_SIDE_LENGTH_IN_PX * IMAGE_SCALE, IMAGE_SIDE_LENGTH_IN_PX * IMAGE_SCALE)
+      ) for id in self.data_by_id \
+        if id != None
+    }
+    for surface in self.surfaces.values(): surface.set_colorkey(TRANSPARENT_COLORKEY)
 
   def is_player(self, id):
     return id in self.entities[ENTITY_CHIP].values()
