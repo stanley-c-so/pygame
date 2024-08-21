@@ -33,8 +33,14 @@ class Map():
       chunks_dict[lines[0]] = lines[1:]
 
     res = {
+      CHIPS_REQUIRED: 0,
       MAP: []
     }
+
+    # CHIPS REQUIRED
+    if chunks_dict.get(CHIPS_REQUIRED):
+      res[CHIPS_REQUIRED] = int(chunks_dict[CHIPS_REQUIRED][0])
+    # debug_print(f'CHIPS REQUIRED: {res[CHIPS_REQUIRED]}')
 
     # PROCESS MAP
     def init_entity(entity, map_col, row, col, id, is_player = False):
@@ -93,6 +99,14 @@ class Map():
     self.WIDTH_IN_TILES = len(self.MAP[0])
     # debug_print(f"HEIGHT_IN_TILES: {self.HEIGHT_IN_TILES} | WIDTH_IN_TILES: {self.WIDTH_IN_TILES}")
 
+    # Data structures
+    self.creatures_to_delete_by_idx = set()
+    self.walls_to_delete_by_coords = {}
+    self.pickups_to_delete_by_coords = {}
+
+    # Map variables
+    self.chips_required = parse[CHIPS_REQUIRED]
+
 
   # ========== MOVEMENT REQUESTS ========== #
 
@@ -140,7 +154,13 @@ class Map():
       # OOB or hit wall
       if new_row < 0 or new_row == self.HEIGHT_IN_TILES \
         or new_col < 0 or new_col == self.WIDTH_IN_TILES \
-        or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable):
+        or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable) \
+        or self.MAP[new_row][new_col][LAYER_IDX_WALLS] == SINGLETONS[TILE].walls[WALL_SOCKET] and self.chips_required > 0 \
+        or self.MAP[new_row][new_col][LAYER_IDX_WALLS] == SINGLETONS[TILE].walls[LOCK_BLUE] and entity.keys_blue == 0 \
+        or self.MAP[new_row][new_col][LAYER_IDX_WALLS] == SINGLETONS[TILE].walls[LOCK_RED] and entity.keys_red == 0 \
+        or self.MAP[new_row][new_col][LAYER_IDX_WALLS] == SINGLETONS[TILE].walls[LOCK_GREEN] and entity.keys_green == 0 \
+        or self.MAP[new_row][new_col][LAYER_IDX_WALLS] == SINGLETONS[TILE].walls[LOCK_YELLOW] and entity.keys_yellow == 0 \
+        :
         # debug_print('HITTING A WALL')
         entity.set_hit_wall(True)
         return
@@ -159,7 +179,9 @@ class Map():
         or new_col < 0 or new_col == self.WIDTH_IN_TILES \
         or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable) \
         or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable_for_creatures) \
-        or self.MAP[new_row][new_col][LAYER_IDX_CREATURES] != None:
+        or (SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_PICKUPS]].get(pickup) and (new_row, new_col) not in self.pickups_to_delete_by_coords) \
+        or self.MAP[new_row][new_col][LAYER_IDX_CREATURES] != None \
+        :
 
         if transform_idx + 1 < len(entity.redirection_transforms):
           # recurse
@@ -186,64 +208,94 @@ class Map():
 
   # ========== COLLISIONS ========== #
 
-  def handle_player_creature_collision(self):
-    player_row = SINGLETONS[PLAYER].row
-    player_col = SINGLETONS[PLAYER].col
+  def handle_collision_with_creature(self, entity):
+    if entity != SINGLETONS[PLAYER]: return
+    if entity.dead: return
+    entity_row = entity.row
+    entity_col = entity.col
 
-    if self.MAP[player_row][player_col][LAYER_IDX_CREATURES] != None:
-      killing_entity = self.MAP[player_row][player_col][LAYER_IDX_CREATURES]
+    if self.MAP[entity_row][entity_col][LAYER_IDX_CREATURES] != None:
+      killing_entity = self.MAP[entity_row][entity_col][LAYER_IDX_CREATURES]
       set_global_KILLING_ENTITY(killing_entity)
-      SINGLETONS[PLAYER].set_dead(True)
+      entity.set_dead(True)
       debug_print(f'PLAYER-CREATURE COLLISION - killed by {killing_entity}')
 
-  def handle_player_interactive_floor_collision(self):
-    player_row = SINGLETONS[PLAYER].row
-    player_col = SINGLETONS[PLAYER].col
+  def handle_collision_with_interactive_floor(self, entity):
+    entity_is_player = entity == SINGLETONS[PLAYER]
+    entity_row = entity.row
+    entity_col = entity.col
 
-    id = self.MAP[player_row][player_col][LAYER_IDX_FLOORS]
-    if id == None or not SINGLETONS[TILE].data_by_id[id].get(interactive): return
-    
-    if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_WATER] == id:
-      if SINGLETONS[PLAYER].dead: return
-      if SINGLETONS[PLAYER].boots_water: return
-      set_global_KILLING_HAZARD(INTERACTIVE_FLOOR_WATER)
-      SINGLETONS[PLAYER].set_dead(True)
-      debug_print(f'PLAYER-HAZARD COLLISION - killed by WATER')
-    if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_FIRE] == id:
-      if SINGLETONS[PLAYER].dead: return
-      if SINGLETONS[PLAYER].boots_fire: return
-      set_global_KILLING_HAZARD(INTERACTIVE_FLOOR_FIRE)
-      SINGLETONS[PLAYER].set_dead(True)
-      debug_print(f'PLAYER-HAZARD COLLISION - killed by FIRE')
-
-  def handle_creature_interactive_floor_collision(self, creature):
-    creature_row = creature.row
-    creature_col = creature.col
-
-    id = self.MAP[creature_row][creature_col][LAYER_IDX_FLOORS]
+    id = self.MAP[entity_row][entity_col][LAYER_IDX_FLOORS]
     if id == None or not SINGLETONS[TILE].data_by_id[id].get(interactive): return
 
     if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_WATER] == id:
-      if creature.dead: return
-      if INTERACTIVE_FLOOR_WATER in creature.invincible_to: return
-      creature.set_dead(True)
+      if entity.dead: return
+      if INTERACTIVE_FLOOR_WATER in entity.invincible_to: return
+      if entity_is_player and entity.boots_water: return
+      entity.set_dead(True)
+      if entity_is_player:
+        set_global_KILLING_HAZARD(INTERACTIVE_FLOOR_WATER)
+        debug_print(f'PLAYER-HAZARD COLLISION - killed by WATER')
+      else:
+        debug_print(f'CREATURE-HAZARD COLLISION - killed by WATER')
     if SINGLETONS[TILE].interactive_floors[INTERACTIVE_FLOOR_FIRE] == id:
-      if creature.dead: return
-      if INTERACTIVE_FLOOR_FIRE in creature.invincible_to: return
-      debug_print(f'CREATURE-HAZARD COLLISION - killed by FIRE')
-      creature.set_dead(True)
+      if entity.dead: return
+      if INTERACTIVE_FLOOR_FIRE in entity.invincible_to: return
+      if entity_is_player and entity.boots_fire: return
+      entity.set_dead(True)
+      if entity_is_player:
+        set_global_KILLING_HAZARD(INTERACTIVE_FLOOR_FIRE)
+        debug_print(f'PLAYER-HAZARD COLLISION - killed by FIRE')
+      else:
+        debug_print(f'CREATURE-HAZARD COLLISION - killed by FIRE')
+
+  def handle_collision_with_wall(self, entity):
+    if entity != SINGLETONS[PLAYER]: return
+    entity_row = entity.row
+    entity_col = entity.col
+
+    if self.MAP[entity_row][entity_col][LAYER_IDX_WALLS] != None and (entity_row, entity_col) not in self.walls_to_delete_by_coords:
+      self.walls_to_delete_by_coords[(entity_row, entity_col)] = get_global_GAME_TICKS()
+      debug_print(f'PLAYER-WALL COLLISION')
+
+
+  def handle_collision_with_pickup(self, entity):
+    if entity != SINGLETONS[PLAYER]: return
+    entity_row = entity.row
+    entity_col = entity.col
+
+    if self.MAP[entity_row][entity_col][LAYER_IDX_PICKUPS] != None and (entity_row, entity_col) not in self.pickups_to_delete_by_coords:
+      self.pickups_to_delete_by_coords[(entity_row, entity_col)] = get_global_GAME_TICKS()
+      debug_print(f'PLAYER-PICKUP COLLISION')
+
+      if self.MAP[entity_row][entity_col][LAYER_IDX_PICKUPS] == SINGLETONS[TILE].pickups[PICKUP_CHIP]:
+        self.chips_required -= 1
+        debug_print(f'chips required: - {self.chips_required}')
+      if self.MAP[entity_row][entity_col][LAYER_IDX_PICKUPS] == SINGLETONS[TILE].pickups[PICKUP_KEY_BLUE]:
+        entity.keys_blue += 1
+        debug_print(f'blue keys: - {entity.keys_blue}')
+      if self.MAP[entity_row][entity_col][LAYER_IDX_PICKUPS] == SINGLETONS[TILE].pickups[PICKUP_KEY_RED]:
+        entity.keys_red += 1
+        debug_print(f'red keys: - {entity.keys_red}')
+      if self.MAP[entity_row][entity_col][LAYER_IDX_PICKUPS] == SINGLETONS[TILE].pickups[PICKUP_KEY_GREEN]:
+        entity.keys_green += 1
+        debug_print(f'green keys: - {entity.keys_green}')
+      if self.MAP[entity_row][entity_col][LAYER_IDX_PICKUPS] == SINGLETONS[TILE].pickups[PICKUP_KEY_YELLOW]:
+        entity.keys_yellow += 1
+        debug_print(f'yellow keys: - {entity.keys_yellow}')
+
 
   def handle_all_collisions(self):
-    self.handle_player_creature_collision()
-    self.handle_player_interactive_floor_collision()
-    for creature in self.all_creatures:
-      self.handle_creature_interactive_floor_collision(creature)
+    for entity in [ SINGLETONS[PLAYER], *self.all_creatures ]:
+      self.handle_collision_with_creature(entity)
+      self.handle_collision_with_interactive_floor(entity)
+      self.handle_collision_with_wall(entity)
+      self.handle_collision_with_pickup(entity)
 
 
   # ========== UPDATES ========== #
 
   def update_all_creatures(self):
-    indices_to_delete = set()
     for i in range(len(self.all_creatures)):
       creature = self.all_creatures[i]
       creature.update()
@@ -251,13 +303,40 @@ class Map():
       if creature.dead and creature.move_time == None:
         # debug_print(f'DELETING {creature}')
         self.MAP[creature.row][creature.col][LAYER_IDX_CREATURES] = None
-        indices_to_delete.add(i)
+        self.creatures_to_delete_by_idx.add(i)
 
-    if len(indices_to_delete):
-      self.all_creatures = [ self.all_creatures[i] for i in range(len(self.all_creatures)) if i not in indices_to_delete ]
+    if len(self.creatures_to_delete_by_idx):
+      self.all_creatures = [ self.all_creatures[i] for i in range(len(self.all_creatures)) if i not in self.creatures_to_delete_by_idx ]
+      self.creatures_to_delete_by_idx.clear()
       debug_print(f'Number of creatures remaining: {len(self.all_creatures)}')
+
+  def update_all_walls(self):
+    coords_to_delete = []
+    for (row, col) in self.walls_to_delete_by_coords:
+      t = self.walls_to_delete_by_coords[(row, col)]
+      if get_global_GAME_TICKS() - t >= SINGLETONS[PLAYER].cooldown:
+        coords_to_delete.append((row, col))
+
+    for (row, col) in coords_to_delete:
+      del self.walls_to_delete_by_coords[(row, col)]
+      self.MAP[row][col][LAYER_IDX_WALLS] = None
+      # Or, other logic depending on the wall type
+
+  def update_all_pickups(self):
+    coords_to_delete = []
+    for (row, col) in self.pickups_to_delete_by_coords:
+      t = self.pickups_to_delete_by_coords[(row, col)]
+      if get_global_GAME_TICKS() - t >= SINGLETONS[PLAYER].cooldown:
+        coords_to_delete.append((row, col))
+
+    for (row, col) in coords_to_delete:
+      del self.pickups_to_delete_by_coords[(row, col)]
+      self.MAP[row][col][LAYER_IDX_PICKUPS] = None
+
 
   def update(self):
     self.handle_all_movement_requests()
     self.update_all_creatures()
+    self.update_all_walls()
+    self.update_all_pickups()
     self.handle_all_collisions()

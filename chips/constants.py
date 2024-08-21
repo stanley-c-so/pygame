@@ -15,12 +15,15 @@ L = 'L'
 D = 'D'
 R = 'R'
 
+CHIPS_REQUIRED = 'CHIPS_REQUIRED'
+
 dir = 'dir'
 entity_class = 'entity_class'
 filename = 'filename'
 impassable = 'impassable'
 impassable_for_creatures = 'impassable_for_creatures'
 interactive = 'interactive'
+pickup = 'pickup'
 
 INPUT_QUIT = 'INPUT_QUIT'
 INPUT_RESTART = 'INPUT_RESTART'
@@ -44,6 +47,18 @@ ENTITY_BLOB = 'ENTITY_BLOB'
 
 INTERACTIVE_FLOOR_WATER = 'INTERACTIVE_FLOOR_WATER'
 INTERACTIVE_FLOOR_FIRE = 'INTERACTIVE_FLOOR_FIRE'
+
+WALL_SOCKET = 'WALL_SOCKET'
+LOCK_BLUE = 'LOCK_BLUE'
+LOCK_RED = 'LOCK_RED'
+LOCK_GREEN = 'LOCK_GREEN'
+LOCK_YELLOW = 'LOCK_YELLOW'
+
+PICKUP_CHIP = 'PICKUP_CHIP'
+PICKUP_KEY_BLUE = 'PICKUP_KEY_BLUE'
+PICKUP_KEY_RED = 'PICKUP_KEY_RED'
+PICKUP_KEY_GREEN = 'PICKUP_KEY_GREEN'
+PICKUP_KEY_YELLOW = 'PICKUP_KEY_YELLOW'
 
 
 # ========== CONSTANTS ========== #

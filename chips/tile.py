@@ -32,11 +32,11 @@ class Tile():
       '033': { filename: 'fire_dead' },
       '036': { filename: 'exit_1' },
 
-      '100': { filename: 'key_blue', impassable_for_creatures: True },
-      '101': { filename: 'key_red', impassable_for_creatures: True },
-      '102': { filename: 'key_green', impassable_for_creatures: True },
-      '103': { filename: 'key_yellow', impassable_for_creatures: True },
-      '108': { filename: 'computer_chip', impassable_for_creatures: True },
+      '100': { filename: 'key_blue', pickup: True },
+      '101': { filename: 'key_red', pickup: True },
+      '102': { filename: 'key_green', pickup: True },
+      '103': { filename: 'key_yellow', pickup: True },
+      '108': { filename: 'computer_chip', pickup: True },
 
       '200': { filename: 'socket', impassable_for_creatures: True },
       '201': { filename: 'wall', impassable: True },
@@ -99,6 +99,22 @@ class Tile():
     self.death_tiles = {
       INTERACTIVE_FLOOR_WATER: '019',
       INTERACTIVE_FLOOR_FIRE: '033',
+    }
+
+    self.walls = {
+      WALL_SOCKET: '200',
+      LOCK_BLUE: '207',
+      LOCK_RED: '208',
+      LOCK_GREEN: '209',
+      LOCK_YELLOW: '210',
+    }
+
+    self.pickups = {
+      PICKUP_CHIP: '108',
+      PICKUP_KEY_BLUE: '100',
+      PICKUP_KEY_RED: '101',
+      PICKUP_KEY_GREEN: '102',
+      PICKUP_KEY_YELLOW: '103',
     }
 
     self.surfaces = {
