@@ -2,6 +2,7 @@ import pygame as pg
 import os
 
 from globals import *
+from constants import *
 from utils import *
 
 from bug import Bug
@@ -20,11 +21,25 @@ class Tile():
       None: {},
 
       '000': { filename: 'floor' },
+      '013': { filename: 'clue' },
       '018': { filename: 'water', interactive: True },
       '019': { filename: 'water_dead' },
       '032': { filename: 'fire', interactive: True },
-      '033': { filename: 'fire_dead', },
+      '033': { filename: 'fire_dead' },
+      '036': { filename: 'exit_1' },
+
+      '100': { filename: 'key_blue' },
+      '101': { filename: 'key_red' },
+      '102': { filename: 'key_green' },
+      '103': { filename: 'key_yellow' },
+      '108': { filename: 'computer_chip' },
+
+      '200': { filename: 'socket', impassable_for_creatures: True },
       '201': { filename: 'wall', impassable: True },
+      '207': { filename: 'lock_blue', impassable_for_creatures: True },
+      '208': { filename: 'lock_red', impassable_for_creatures: True },
+      '209': { filename: 'lock_green', impassable_for_creatures: True },
+      '210': { filename: 'lock_yellow', impassable_for_creatures: True },
       
       '300': { filename: 'bug_D', dir: D, entity_class: Bug },
       '301': { filename: 'bug_L', dir: L, entity_class: Bug },

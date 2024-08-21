@@ -1,4 +1,5 @@
 from globals import *
+from constants import *
 from utils import *
 
 from creature import Creature

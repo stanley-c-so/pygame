@@ -1,6 +1,7 @@
 import pygame as pg
 
 from globals import *
+from constants import *
 
 DIRS = [ U, R, D, L ]
 

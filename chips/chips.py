@@ -7,6 +7,7 @@ from sys import exit
 # ========== IMPORTS ========== #
 
 from globals import *
+from constants import *
 from utils import *
 
 from mouse import Mouse

@@ -2,6 +2,7 @@ import os
 from collections import deque
 
 from globals import *
+from constants import *
 from utils import *
 
 FILENAME = 'map1'
@@ -157,6 +158,7 @@ class Map():
       if new_row < 0 or new_row == self.HEIGHT_IN_TILES \
         or new_col < 0 or new_col == self.WIDTH_IN_TILES \
         or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable) \
+        or SINGLETONS[TILE].data_by_id[self.MAP[new_row][new_col][LAYER_IDX_WALLS]].get(impassable_for_creatures) \
         or self.MAP[new_row][new_col][LAYER_IDX_CREATURES] != None:
 
         if transform_idx + 1 < len(entity.redirection_transforms):
