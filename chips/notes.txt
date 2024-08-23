@@ -149,3 +149,12 @@ Player type:
 401 - Chip (left) [ENTITY]
 402 - Chip (up) [ENTITY]
 403 - Chip (right) [ENTITY]
+
+
+TODO:
+- realized that the game design is wrong - instead of moves being instantaneous and then waiting for a cooldown, i think the real game makes you wait for the cooldown before moving you. we know this because the effect of moving (e.g. stepping on a button) doesn't happen until after the cooldown. although if i had to reimplement everything, i'd probably need to do an initial instantaneous check for valid move before actually moving (as the movement scrolling doesn't happen if the move is invalid).
+- level 1: exit doesn't work, and is not animated
+- UI: need to show inventory and chips remaining
+- hint button: need to show text
+- level navigation: need to be able to move across levels
+- nice to have: a level editor
